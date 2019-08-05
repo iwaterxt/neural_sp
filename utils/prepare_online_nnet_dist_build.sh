@@ -1,0 +1,1 @@
+../../neural_sp/utils/prepare_online_nnet_dist_build.sh

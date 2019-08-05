@@ -1,0 +1,1 @@
+../../neural_sp/utils/int2sym.pl

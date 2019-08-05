@@ -1,0 +1,1 @@
+../../neural_sp/utils/fix_ctm.sh

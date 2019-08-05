@@ -1,0 +1,1 @@
+../../neural_sp/utils/make_lexicon_fst_silprob.pl

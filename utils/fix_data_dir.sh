@@ -1,0 +1,1 @@
+../../neural_sp/utils/fix_data_dir.sh

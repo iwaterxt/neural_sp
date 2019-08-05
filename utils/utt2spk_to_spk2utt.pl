@@ -1,0 +1,1 @@
+../../neural_sp/utils/utt2spk_to_spk2utt.pl

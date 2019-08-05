@@ -1,0 +1,1 @@
+../../neural_sp/utils/subset_scp.pl

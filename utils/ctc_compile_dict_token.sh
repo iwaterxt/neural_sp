@@ -1,0 +1,1 @@
+../../neural_sp/utils/ctc_compile_dict_token.sh

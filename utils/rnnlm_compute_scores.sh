@@ -1,0 +1,1 @@
+../../neural_sp/utils/rnnlm_compute_scores.sh

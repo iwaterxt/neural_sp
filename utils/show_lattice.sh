@@ -1,0 +1,1 @@
+../../neural_sp/utils/show_lattice.sh

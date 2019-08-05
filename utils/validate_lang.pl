@@ -1,0 +1,1 @@
+../../neural_sp/utils/validate_lang.pl

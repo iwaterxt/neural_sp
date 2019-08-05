@@ -1,0 +1,1 @@
+../../neural_sp/utils/prepare_data_spk_utt.sh

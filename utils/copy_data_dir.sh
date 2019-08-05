@@ -1,0 +1,1 @@
+../../neural_sp/utils/copy_data_dir.sh

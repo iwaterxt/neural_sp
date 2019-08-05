@@ -1,0 +1,1 @@
+../../neural_sp/utils/best_wer.sh

@@ -1,0 +1,1 @@
+../../neural_sp/utils/sym2int.pl
