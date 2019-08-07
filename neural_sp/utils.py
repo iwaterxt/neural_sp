@@ -9,7 +9,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-
+import socket
 import os
 
 
@@ -37,3 +37,15 @@ def mkdir_join(path, *dir_name):
         else:
             path = os.path.join(path, dir_name[i])
     return path
+
+
+
+def host_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+
+    return ip
