@@ -37,13 +37,13 @@ from neural_sp.evaluators.word import eval_word
 from neural_sp.evaluators.wordpiece import eval_wordpiece
 from neural_sp.models.data_parallel import CustomDataParallel
 from neural_sp.models.lm.build import build_lm
-from neural_sp.models.seq2seq.skip_thought import SkipThought
 from neural_sp.models.seq2seq.speech2text import Speech2Text
 from neural_sp.trainers.lr_scheduler import LRScheduler
 from neural_sp.trainers.model_name import set_asr_model_name
 from neural_sp.trainers.optimizer import set_optimizer
 from neural_sp.trainers.reporter import Reporter
 from neural_sp.utils import mkdir_join
+from neural_sp.utils import host_ip
 
 torch.manual_seed(1)
 torch.cuda.manual_seed_all(1)
@@ -185,9 +185,9 @@ def main():
     # Set logger
     logger = set_logger(os.path.join(save_path, 'train.log'),
                         key='training', stdout=args.stdout)
-
+    logger.info(host_ip());
     # Model setting
-    model = Speech2Text(args, save_path) if not skip_thought else SkipThought(args, save_path)
+    model = Speech2Text(args, save_path) 
 
     if args.resume:
         # Set optimizer
