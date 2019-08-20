@@ -122,7 +122,7 @@ if [ ${stage} -le 4 ]; then
     echo "                       ASR Training stage (stage:4)                        "
     echo ============================================================================
 
-    CUDA_VISIBLE_DEVICES=${gpu} ${NEURALSP_ROOT}/neural_sp/bin/asr/train.py \
+    CUDA_VISIBLE_DEVICES=${gpu} python -m torch.distributed.launch --nproc_per_node=${n_gpus} ${NEURALSP_ROOT}/neural_sp/bin/asr/train.py \
         --corpus timit \
         --config ${asr_conf} \
         --n_gpus ${n_gpus} \

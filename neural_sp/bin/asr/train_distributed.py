@@ -55,7 +55,7 @@ def main():
     args_pt = copy.deepcopy(args)
     args_teacher = copy.deepcopy(args)
 
-    torch.cuda.set_device(0)
+    torch.cuda.set_device(args.local_rank)
 
     torch.distributed.init_process_group(backend='nccl',
                                      init_method='env://')
@@ -320,8 +320,8 @@ def main():
         torch.backends.cudnn.benchmark = True
         #model = CustomDataParallel(model, device_ids=list(range(0, args.n_gpus)))
         model = torch.nn.parallel.DistributedDataParallel(model,
-                                                  device_ids=[0],
-                                                  output_device=0)
+                                                  device_ids=[args.local_rank],
+                                                  output_device=args.local_rank)
         model.cuda()
         if teacher is not None:
             teacher.cuda()
