@@ -319,10 +319,11 @@ def main():
     if args.n_gpus >= 1:
         torch.backends.cudnn.benchmark = True
         #model = CustomDataParallel(model, device_ids=list(range(0, args.n_gpus)))
+        model.cuda()
         model = torch.nn.parallel.DistributedDataParallel(model,
                                                   device_ids=[args.local_rank],
                                                   output_device=args.local_rank)
-        model.cuda()
+        
         if teacher is not None:
             teacher.cuda()
         if teacher_lm is not None:
