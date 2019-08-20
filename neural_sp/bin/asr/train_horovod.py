@@ -46,7 +46,6 @@ from neural_sp.utils import mkdir_join
 from neural_sp.utils import host_ip
 import horovod.torch as hvd
 
-hvd.init()
 torch.manual_seed(1)
 torch.cuda.manual_seed_all(1)
 
@@ -56,6 +55,9 @@ def main():
     args = parse()
     args_pt = copy.deepcopy(args)
 
+
+    hvd.init()
+    torch.cuda.set_device(hvd.local_rank())
 
     # Load a conf file
     if args.resume:
@@ -187,9 +189,15 @@ def main():
     # Set logger
     logger = set_logger(os.path.join(save_path, 'train.log'),
                         key='training', stdout=args.stdout)
-    logger.info(host_ip());
+    # Set process name
+    logger.info('PID: %s' % os.getpid())
+    logger.info('USERNAME: %s' % os.uname()[1])
     # Model setting
     model = Speech2Text(args, save_path) 
+    # GPU setting
+    if args.n_gpus >= 1:
+        torch.backends.cudnn.benchmark = True
+        model.cuda()
 
     if args.resume and hvd.rank() == 0:
         # Set optimizer
@@ -231,6 +239,12 @@ def main():
                               name = 'epoch').item()
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+        compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
+
+        optimizer = hvd.DistributedOptimizer(
+                optimizer, named_parameters=model.named_parameters(),
+                compression=compression,
+                backward_passes_per_step=args.batch_per_allreduce)
 
     else:
         # Save the conf file as a yaml file
@@ -291,6 +305,8 @@ def main():
                                 factor=args.lr_factor,
                                 noam=noam)
 
+        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
 
         optimizer = hvd.DistributedOptimizer(
@@ -298,14 +314,8 @@ def main():
                 compression=compression,
                 backward_passes_per_step=args.batch_per_allreduce)
 
-    # GPU setting
-    if args.n_gpus >= 1:
-        torch.backends.cudnn.benchmark = True
-        model.cuda()
 
-    # Set process name
-    logger.info('PID: %s' % os.getpid())
-    logger.info('USERNAME: %s' % os.uname()[1])
+    
     setproctitle(args.job_name if args.job_name else dir_name)
 
     # Set reporter
@@ -333,7 +343,7 @@ def main():
         model.train()
 
         train_sampler.set_epoch(epoch)
-        
+
         # Compute loss in the training set
         batch_train, is_new_epoch = train_set.next()
         accum_n_tokens += sum([len(y) for y in batch_train['ys']])
@@ -372,6 +382,7 @@ def main():
 
         if optimizer.n_steps % args.print_step == 0:
             # Compute loss in the dev set
+            model.eval()
             batch_dev = dev_set.next()[0]
             # Change mini-batch depending on task
             for task in tasks:
@@ -385,24 +396,7 @@ def main():
                     loss, reporter = model(batch_dev, reporter, task, is_eval=True)
                 loss_dev = loss.item()
                 del loss
-            # NOTE: this makes training slow
-            # Compute WER/CER regardless of the output unit (greedy decoding)
-            # best_hyps_id, _, _ = model.module.decode(
-            #     batch_dev['xs'], recog_params, dev_set.idx2token[0], exclude_eos=True)
-            # cer = 0.
-            # ref_n_words, ref_n_chars = 0, 0
-            # for b in range(len(batch_dev['xs'])):
-            #     ref = batch_dev['text'][b]
-            #     hyp = dev_set.idx2token[0](best_hyps_id[b])
-            #     cer += editdistance.eval(hyp, ref)
-            #     ref_n_words += len(ref.split())
-            #     ref_n_chars += len(ref)
-            # wer = cer / ref_n_words
-            # cer /= ref_n_chars
-            # reporter.add_tensorboard_scalar('dev/WER', wer)
-            # reporter.add_tensorboard_scalar('dev/CER', cer)
-            # logger.info('WER (dev)', wer)
-            # logger.info('CER (dev)', cer)
+
             reporter.step(is_eval=True)
 
             duration_step = time.time() - start_time_step
@@ -421,12 +415,12 @@ def main():
         pbar_epoch.update(len(batch_train['utt_ids']))
 
         # Save fugures of loss and accuracy
-        if optimizer.n_steps % (args.print_step * 10) == 0:
+        if optimizer.n_steps % (args.print_step * 10) == 0 and hvd.rank() == 0:
             reporter.snapshot()
             model.module.plot_attention()
 
         # Save checkpoint and evaluate model per epoch
-        if is_new_epoch:
+        if is_new_epoch and hvd.rank():
             duration_epoch = time.time() - start_time_epoch
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
                         (optimizer.n_epochs + 1, duration_epoch / 60))
