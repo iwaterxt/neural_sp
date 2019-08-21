@@ -309,6 +309,7 @@ class RNNEncoder(EncoderBase):
 
         # Sort by lenghts in the descending order for pack_padded_sequence
         xlens, perm_ids = torch.IntTensor(xlens).sort(0, descending=True)
+        print (xlens)
         xs = xs[perm_ids]
         _, perm_ids_unsort = perm_ids.sort()
 
