@@ -224,6 +224,9 @@ def parse():
                         help='number of steps to warm up learing rate')
     parser.add_argument('--accum_grad_n_tokens', type=int, default=0,
                         help='total number of tokens to accumulate gradients')
+    parser.add_argument('--f16_allreduce', type=strtobool, default=True,
+                        help='')
+
     # initialization
     parser.add_argument('--param_init', type=float, default=0.1,
                         help='')
