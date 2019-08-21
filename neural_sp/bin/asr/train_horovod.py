@@ -309,7 +309,8 @@ def main():
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
-            print(batch_train['ys'])
+            print(len(batch_train['xs']))
+            print(batch_train['xs'][0])
             # Change mini-batch depending on task
             for task in tasks:
                 if skip_thought:
