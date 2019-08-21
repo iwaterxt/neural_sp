@@ -192,6 +192,8 @@ def main():
     # Set process name
     logger.info('PID: %s' % os.getpid())
     logger.info('USERNAME: %s' % os.uname()[1])
+    
+    setproctitle(args.job_name if args.job_name else dir_name)
     # Model setting
     model = Speech2Text(args, save_path) 
     # GPU setting
@@ -266,45 +268,20 @@ def main():
         logger.info("Total %.2f M parameters" % (model.total_parameters / 1000000))
         logger.info(model)
 
-        # Initialize with pre-trained model's parameters
-        if args.pretrained_model and os.path.isfile(args.pretrained_model):
-            # Load the ASR model
-            conf_pt = load_config(os.path.join(os.path.dirname(args.pretrained_model), 'conf.yml'))
-            for k, v in conf_pt.items():
-                setattr(args_pt, k, v)
-            model_pt = Speech2Text(args_pt)
-            model_pt = load_checkpoint(model_pt, args.pretrained_model)[0]
-
-            # Overwrite parameters
-            only_enc = (args.enc_n_layers != args_pt.enc_n_layers) or (
-                args.unit != args_pt.unit) or args_pt.ctc_weight == 1
-            param_dict = dict(model_pt.named_parameters())
-            for n, p in model.named_parameters():
-                if n in param_dict.keys() and p.size() == param_dict[n].size():
-                    if only_enc and 'enc' not in n:
-                        continue
-                    if args.lm_fusion_type == 'cache' and 'output' in n:
-                        continue
-                    p.data = param_dict[n].data
-                    logger.info('Overwrite %s' % n)
-
         # Set optimizer
         optimizer = set_optimizer(model, args.optimizer, args.lr, args.weight_decay)
 
 
-        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+
         compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
 
         optimizer = hvd.DistributedOptimizer(
                 optimizer, named_parameters=model.named_parameters(),
                 compression=compression,
                 backward_passes_per_step=batch_per_allreduce)
-
-
-    
-    setproctitle(args.job_name if args.job_name else dir_name)
-
+        
+        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
     # Set reporter
     reporter = Reporter(save_path)
 
