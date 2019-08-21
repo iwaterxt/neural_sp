@@ -49,14 +49,14 @@ def pad_list(xs, value, pad_left=False):
     for item in xs:
         if pad_left:
             if item.shape[0] != max_time:
-                mat = np.zeros((max_time, item.shape[1]), dtype=float)
+                mat = np.zeros((max_time, item.shape[1]), dtype="float32")
                 mat[-item.shape[1]:,:] = item
                 xs_pad.append(mat)
             else:
                 xs_pad.append(item)
         else:
             if item.shape[0] != max_time:
-                mat = np.zeros((max_time, item.shape[1]), dtype=float)
+                mat = np.zeros((max_time, item.shape[1]), dtype="float32")
                 mat[:item.shape[0],:] = item
                 xs_pad.append(mat)
             else:
@@ -452,8 +452,6 @@ class Dataset(data.Dataset):
         else:
             xs_org = [kaldiio.load_mat(self.df['feat_path'][i]) for i in df_indices]
             xs = pad_list(xs_org, 0.0)
-            for item in xs:
-                print (item.shape)
         # outputs
         if self.is_test:
             ys = [self.token2idx[0](self.df['text'][i]) for i in df_indices]
