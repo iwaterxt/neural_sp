@@ -318,7 +318,7 @@ class Dataset(data.Dataset):
 
         """
         batch_size = self.batch_size
-
+        print (batch_size)
         if self.max_epoch is not None and self.epoch >= self.max_epoch:
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
