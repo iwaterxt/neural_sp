@@ -157,12 +157,12 @@ def main():
         train_set, num_replicas=hvd.size(), rank=hvd.rank())
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_per_allreduce,
-        sampler=train_sampler， **kwargs)
+        sampler=train_sampler,**kwargs)
 
     val_sampler = torch.utils.data.distributed.DistributedSampler(
         dev_set, num_replicas=hvd.size(), rank=hvd.rank())
     val_loader = torch.utils.data.DataLoader(dev_set, batch_size=batch_per_allreduce,
-                                         sampler=val_sampler， **kwargs)
+                                         sampler=val_sampler, **kwargs)
 
     # Load a LM conf file for LM fusion & LM initialization
     if not args.resume and (args.lm_fusion or args.lm_init):
