@@ -514,12 +514,9 @@ class Speech2Text(ModelBase):
             # Flip acoustic features in the reverse order
             if flip:
                 xs = [torch.from_numpy(np.flip(x, axis=0).copy()).float().cuda(self.device_id) for x in xs]
-            else:
-                print (xs.size)
-                print (xlens.size)
-                pass                
+            else:           
                 #xs = [np2tensor(x, self.device_id).float() for x in xs]
-            #xs = pad_list(xs, 0.0)
+                xs = pad_list(xs, 0.0)
 
             # SpecAugment
             if self.is_specaug and self.training:
