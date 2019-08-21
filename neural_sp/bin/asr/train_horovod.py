@@ -150,19 +150,19 @@ def main():
     args.vocab_sub1 = train_set.vocab_sub1
     args.vocab_sub2 = train_set.vocab_sub2
     args.input_dim = train_set.input_dim
-
+    kwargs = {'num_workers': 2, 'pin_memory': True} 
     # Horovod: use DistributedSampler to partition data among workers. Manually specify
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_set, num_replicas=hvd.size(), rank=hvd.rank())
     train_loader = torch.utils.data.DataLoader(
-        train_set, batch_size=args.batch_size * args.n_gpus,
-        sampler=train_sampler)
+        train_set, batch_size=batch_per_allreduce,
+        sampler=train_sampler， **kwargs)
 
     val_sampler = torch.utils.data.distributed.DistributedSampler(
         dev_set, num_replicas=hvd.size(), rank=hvd.rank())
-    val_loader = torch.utils.data.DataLoader(dev_set, batch_size=args.batch_size * args.n_gpus,
-                                         sampler=val_sampler)
+    val_loader = torch.utils.data.DataLoader(dev_set, batch_size=batch_per_allreduce,
+                                         sampler=val_sampler， **kwargs)
 
     # Load a LM conf file for LM fusion & LM initialization
     if not args.resume and (args.lm_fusion or args.lm_init):
@@ -200,6 +200,7 @@ def main():
     if args.n_gpus >= 1:
         torch.backends.cudnn.benchmark = True
         model.cuda()
+
     epoch = 0
     if args.resume and hvd.rank() == 0:
         # Set optimizer
@@ -271,15 +272,13 @@ def main():
         # Set optimizer
         optimizer = set_optimizer(model, args.optimizer, args.lr, args.weight_decay)
 
-
-
         compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
 
         optimizer = hvd.DistributedOptimizer(
                 optimizer, named_parameters=model.named_parameters(),
                 compression=compression,
                 backward_passes_per_step=batch_per_allreduce)
-        
+
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
     # Set reporter
