@@ -431,8 +431,7 @@ class Dataset(data.Dataset):
         if self.skip_thought:
             xs = []
         else:
-            xs = [kaldiio.load_mat(self.df['feat_path'][i]) for i in df_indices]
-            print (xs[0].shape)
+            xs = [np.transpose(kaldiio.load_mat(self.df['feat_path'][i])) for i in df_indices]
         # outputs
         if self.is_test:
             ys = [self.token2idx[0](self.df['text'][i]) for i in df_indices]
