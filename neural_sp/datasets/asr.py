@@ -29,7 +29,7 @@ from neural_sp.datasets.token_converter.word import Idx2word
 from neural_sp.datasets.token_converter.word import Word2idx
 from neural_sp.datasets.token_converter.wordpiece import Idx2wp
 from neural_sp.datasets.token_converter.wordpiece import Wp2idx
-
+from neural_sp.models.torch_utils import pad_list
 import torch.utils.data as data
 random.seed(1)
 np.random.seed(1)
@@ -431,7 +431,8 @@ class Dataset(data.Dataset):
         if self.skip_thought:
             xs = []
         else:
-            xs = [np.transpose(kaldiio.load_mat(self.df['feat_path'][i])) for i in df_indices]
+            xs_org = [kaldiio.load_mat(self.df['feat_path'][i]) for i in df_indices]
+            xs = pad_list(xs_org, 0.0)
         # outputs
         if self.is_test:
             ys = [self.token2idx[0](self.df['text'][i]) for i in df_indices]
