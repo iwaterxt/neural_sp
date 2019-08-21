@@ -85,7 +85,7 @@ def parse():
                         help='number of input frames to skip')
     parser.add_argument('--max_n_frames', type=int, default=2000,
                         help='maximum number of input frames')
-    parser.add_argument('--min_n_frames', type=int, default=40,
+    parser.add_argument('--min_n_frames', type=int, default=80,
                         help='minimum number of input frames')
     parser.add_argument('--dynamic_batching', type=strtobool, default=True,
                         help='')
