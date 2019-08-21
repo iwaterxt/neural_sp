@@ -20,6 +20,7 @@ from setproctitle import setproctitle
 import shutil
 import time
 import torch
+import horovod.torch as hvd
 from tqdm import tqdm
 
 from neural_sp.bin.args_asr import parse
@@ -44,7 +45,7 @@ from neural_sp.trainers.optimizer import set_optimizer
 from neural_sp.trainers.reporter import Reporter
 from neural_sp.utils import mkdir_join
 from neural_sp.utils import host_ip
-import horovod.torch as hvd
+
 
 torch.manual_seed(1)
 torch.cuda.manual_seed_all(1)
