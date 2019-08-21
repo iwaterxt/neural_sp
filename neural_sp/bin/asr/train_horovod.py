@@ -79,7 +79,7 @@ def main():
         subsample_factor = np.prod(subsample)
 
     skip_thought = 'skip' in args.enc_type
-
+    batch_per_allreduce = args.batch_size
     # Load dataset
     train_set = Dataset(corpus=args.corpus,
                         tsv_path=args.train_set,
@@ -299,7 +299,7 @@ def main():
         optimizer = hvd.DistributedOptimizer(
                 optimizer, named_parameters=model.named_parameters(),
                 compression=compression,
-                backward_passes_per_step=args.batch_per_allreduce)
+                backward_passes_per_step=batch_per_allreduce)
 
 
     
