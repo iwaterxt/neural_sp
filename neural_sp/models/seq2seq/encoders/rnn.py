@@ -176,7 +176,7 @@ class RNNEncoder(EncoderBase):
             self._output_dim = input_dim * n_splices * n_stacks
             self.conv = None
 
-        #self.padding = Padding()
+        self.padding = Padding()
 
         if rnn_type not in ['conv', 'tds', 'gated_conv']:
             # Fast implementation without processes between each layer
