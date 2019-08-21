@@ -308,7 +308,6 @@ def main():
         train_sampler.set_epoch(epoch)
         # Compute loss in the training set
         for batch_train in enumerate(train_loader):
-            print (batch_train)
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
 
             # Change mini-batch depending on task
