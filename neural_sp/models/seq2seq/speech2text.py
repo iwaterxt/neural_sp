@@ -517,7 +517,7 @@ class Speech2Text(ModelBase):
             else:           
                 #xs = [np2tensor(x, self.device_id).float() for x in xs]
                 print (len(xs))
-                print (xs[0])
+                print (xs[0].size())
                 xs = pad_list(xs, 0.0)
 
             # SpecAugment
