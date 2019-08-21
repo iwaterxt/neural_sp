@@ -107,8 +107,6 @@ def main():
                         ctc_sub1=args.ctc_weight_sub1 > 0,
                         ctc_sub2=args.ctc_weight_sub2 > 0,
                         subsample_factor=subsample_factor,
-                        subsample_factor_sub1=subsample_factor_sub1,
-                        subsample_factor_sub2=subsample_factor_sub2,
                         discourse_aware=args.discourse_aware,
                         skip_thought=skip_thought)
 
@@ -133,8 +131,6 @@ def main():
                       ctc_sub1=args.ctc_weight_sub1 > 0,
                       ctc_sub2=args.ctc_weight_sub2 > 0,
                       subsample_factor=subsample_factor,
-                      subsample_factor_sub1=subsample_factor_sub1,
-                      subsample_factor_sub2=subsample_factor_sub2,
                       discourse_aware=args.discourse_aware,
                       skip_thought=skip_thought)
     eval_sets = []
