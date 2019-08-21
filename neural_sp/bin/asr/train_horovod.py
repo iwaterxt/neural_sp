@@ -157,7 +157,7 @@ def main():
         train_set, num_replicas=hvd.size(), rank=hvd.rank())
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_per_allreduce,
-        sampler=train_sampler)
+        sampler=train_sampler,**kwargs)
 
     val_sampler = torch.utils.data.distributed.DistributedSampler(
         dev_set, num_replicas=hvd.size(), rank=hvd.rank())

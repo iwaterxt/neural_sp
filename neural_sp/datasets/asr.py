@@ -289,7 +289,7 @@ class Dataset(data.Dataset):
     def __len__(self):
         return len(self.df)
 
-    def __getitem__(self, batch_size=None):
+    def __getitem__(self, index):
         """Generate each mini-batch.
 
         Args:
