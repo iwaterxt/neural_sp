@@ -198,7 +198,7 @@ def main():
     if args.n_gpus >= 1:
         torch.backends.cudnn.benchmark = True
         model.cuda()
-
+    epoch = 0
     if args.resume and hvd.rank() == 0:
         # Set optimizer
         epoch = int(args.resume.split('-')[-1])
