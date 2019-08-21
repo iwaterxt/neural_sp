@@ -29,7 +29,6 @@ from neural_sp.datasets.token_converter.word import Idx2word
 from neural_sp.datasets.token_converter.word import Word2idx
 from neural_sp.datasets.token_converter.wordpiece import Idx2wp
 from neural_sp.datasets.token_converter.wordpiece import Wp2idx
-from neural_sp.models.torch_utils import pad_list
 import torch.utils.data as data
 random.seed(1)
 np.random.seed(1)
@@ -43,7 +42,26 @@ def count_vocab_size(dict_path):
                 vocab_count += 1
     return vocab_count
 
+def pad_list(xs, value, pad_left=False):
+    num = len(xs)
+    max_time = max(x.shape(1) for x in xs)
+    xs_pad=[]
+    for item in xs:
+        if pad_left:
+            if item.shape(1) != max_time:
+                mat = np.zeros(shape(0), max_time)
+                mat[,-item.shape(1):] = item
+                xs_pad.append(mat)
+            else:
+                xs_pad.append(item)
+        else:
+            if item.shape(1) != max_time:
+                mat = np.zeros(shape(0), max_time)
+                mat[,:item.shape(1)] = item
+            else:
+                xs_pad.append(item)
 
+    return xs_pad
 class Dataset(data.Dataset):
 
     def __init__(self, tsv_path, dict_path,
