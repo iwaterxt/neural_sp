@@ -150,19 +150,18 @@ def main():
     args.vocab_sub1 = train_set.vocab_sub1
     args.vocab_sub2 = train_set.vocab_sub2
     args.input_dim = train_set.input_dim
-    kwargs = {'num_workers': 2, 'pin_memory': True} 
     # Horovod: use DistributedSampler to partition data among workers. Manually specify
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
     train_sampler = torch.utils.data.distributed.DistributedSampler(
         train_set, num_replicas=hvd.size(), rank=hvd.rank())
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_per_allreduce,
-        sampler=train_sampler,**kwargs)
+        sampler=train_sampler)
 
     val_sampler = torch.utils.data.distributed.DistributedSampler(
         dev_set, num_replicas=hvd.size(), rank=hvd.rank())
     val_loader = torch.utils.data.DataLoader(dev_set, batch_size=batch_per_allreduce,
-                                         sampler=val_sampler, **kwargs)
+                                         sampler=val_sampler)
 
     # Load a LM conf file for LM fusion & LM initialization
     if not args.resume and (args.lm_fusion or args.lm_init):
