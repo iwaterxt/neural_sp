@@ -110,6 +110,7 @@ def main():
                         subsample_factor_sub2=subsample_factor_sub2,
                         discourse_aware=args.discourse_aware,
                         skip_thought=skip_thought)
+
     dev_set = Dataset(corpus=args.corpus,
                       tsv_path=args.dev_set,
                       tsv_path_sub1=args.dev_set_sub1,
@@ -345,59 +346,59 @@ def main():
         train_sampler.set_epoch(epoch)
 
         # Compute loss in the training set
-        batch_train, is_new_epoch = train_set.next()
-        accum_n_tokens += sum([len(y) for y in batch_train['ys']])
+        for batch_train in enumerate(train_loader):
+            accum_n_tokens += sum([len(y) for y in batch_train['ys']])
 
-        # Change mini-batch depending on task
-        for task in tasks:
-            if skip_thought:
-                loss, reporter = model(batch_train['ys'],
-                                       ys_prev=batch_train['ys_prev'],
-                                       ys_next=batch_train['ys_next'],
-                                       reporter=reporter)
-            else:
-                loss, reporter = model(batch_train, reporter, task,
-                                       teacher=teacher, teacher_lm=teacher_lm)
-            loss.backward()
-            loss.detach()  # Trancate the graph
-            if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
-                if args.clip_grad_norm > 0:
-                    total_norm = torch.nn.utils.clip_grad_norm_(
-                        model.module.parameters(), args.clip_grad_norm)
-                    reporter.add_tensorboard_scalar('total_norm', total_norm)
-                optimizer.step()
-                # NOTE: this makes training very slow
-                # for n, p in model.module.named_parameters():
-                #     if p.grad is not None:
-                #         n = n.replace('.', '/')
-                #         reporter.add_tensorboard_histogram(n, p.data.cpu().numpy())
-                #         reporter.add_tensorboard_histogram(n + '/grad', p.grad.data.cpu().numpy())
-                optimizer.zero_grad()
-                accum_n_tokens = 0
-            loss_train = loss.item()
-            del loss
-        reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
-        # NOTE: loss/acc/ppl are already added in the model
-        reporter.step()
-
-        if optimizer.n_steps % args.print_step == 0:
-            # Compute loss in the dev set
-            model.eval()
-            batch_dev = dev_set.next()[0]
             # Change mini-batch depending on task
             for task in tasks:
                 if skip_thought:
-                    loss, reporter = model(batch_dev['ys'],
+                    loss, reporter = model(batch_train['ys'],
+                                       ys_prev=batch_train['ys_prev'],
+                                       ys_next=batch_train['ys_next'],
+                                       reporter=reporter)
+                else:
+                    loss, reporter = model(batch_train, reporter, task,
+                                       teacher=teacher, teacher_lm=teacher_lm)
+                loss.backward()
+                loss.detach()  # Trancate the graph
+                if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
+                    if args.clip_grad_norm > 0:
+                        total_norm = torch.nn.utils.clip_grad_norm_(
+                            model.module.parameters(), args.clip_grad_norm)
+                        reporter.add_tensorboard_scalar('total_norm', total_norm)
+                    optimizer.step()
+                    # NOTE: this makes training very slow
+                    # for n, p in model.module.named_parameters():
+                    #     if p.grad is not None:
+                    #         n = n.replace('.', '/')
+                    #         reporter.add_tensorboard_histogram(n, p.data.cpu().numpy())
+                    #         reporter.add_tensorboard_histogram(n + '/grad', p.grad.data.cpu().numpy())
+                    optimizer.zero_grad()
+                    accum_n_tokens = 0
+                loss_train = loss.item()
+                del loss
+            reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
+            # NOTE: loss/acc/ppl are already added in the model
+            reporter.step()
+
+            if optimizer.n_steps % args.print_step == 0:
+                # Compute loss in the dev set
+                model.eval()
+                batch_dev = dev_set.getitem()
+                # Change mini-batch depending on task
+                for task in tasks:
+                    if skip_thought:
+                        loss, reporter = model(batch_dev['ys'],
                                            ys_prev=batch_dev['ys_prev'],
                                            ys_next=batch_dev['ys_next'],
                                            reporter=reporter,
                                            is_eval=True)
-                else:
-                    loss, reporter = model(batch_dev, reporter, task, is_eval=True)
-                loss_dev = loss.item()
-                del loss
+                    else:
+                        loss, reporter = model(batch_dev, reporter, task, is_eval=True)
+                    loss_dev = loss.item()
+                    del loss
 
-            reporter.step(is_eval=True)
+                reporter.step(is_eval=True)
 
             duration_step = time.time() - start_time_step
             if args.input_type == 'speech':
@@ -412,7 +413,7 @@ def main():
                          optimizer.lr, len(batch_train['utt_ids']),
                          xlen, ylen, duration_step / 60))
             start_time_step = time.time()
-        pbar_epoch.update(len(batch_train['utt_ids']))
+            pbar_epoch.update(len(batch_train['utt_ids']))
 
         # Save fugures of loss and accuracy
         if optimizer.n_steps % (args.print_step * 10) == 0 and hvd.rank() == 0:
@@ -420,7 +421,7 @@ def main():
             model.module.plot_attention()
 
         # Save checkpoint and evaluate model per epoch
-        if is_new_epoch and hvd.rank():
+        if hvd.rank() == 0:
             duration_epoch = time.time() - start_time_epoch
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
                         (optimizer.n_epochs + 1, duration_epoch / 60))

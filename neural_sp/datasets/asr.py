@@ -30,6 +30,7 @@ from neural_sp.datasets.token_converter.word import Word2idx
 from neural_sp.datasets.token_converter.wordpiece import Idx2wp
 from neural_sp.datasets.token_converter.wordpiece import Wp2idx
 
+import torch.utils.data as data
 random.seed(1)
 np.random.seed(1)
 
@@ -43,7 +44,7 @@ def count_vocab_size(dict_path):
     return vocab_count
 
 
-class Dataset(object):
+class Dataset(data.Dataset):
 
     def __init__(self, tsv_path, dict_path,
                  unit, batch_size, nlsyms=False, n_epochs=None,
@@ -288,24 +289,13 @@ class Dataset(object):
     def __len__(self):
         return len(self.df)
 
-    @property
-    def epoch_detail(self):
-        """Percentage of the current epoch."""
-        return 1 - (len(self.df_indices) / len(self))
-
-    def reset(self):
-        """Reset data counter and offset."""
-        self.df_indices = list(self.df.index)
-        self.offset = 0
-
-    def next(self, batch_size=None):
+    def __getitem__(self, batch_size=None):
         """Generate each mini-batch.
 
         Args:
             batch_size (int): size of mini-batch
         Returns:
             batch (dict):
-            is_new_epoch (bool): flag for the end of the current epoch
 
         """
         if batch_size is None:
@@ -334,7 +324,17 @@ class Dataset(object):
             self.reset()
             self.epoch += 1
 
-        return batch, is_new_epoch
+        return batch
+
+    @property
+    def epoch_detail(self):
+        """Percentage of the current epoch."""
+        return 1 - (len(self.df_indices) / len(self))
+
+    def reset(self):
+        """Reset data counter and offset."""
+        self.df_indices = list(self.df.index)
+        self.offset = 0
 
     def sample_index(self, batch_size):
         """Sample data indices of mini-batch.

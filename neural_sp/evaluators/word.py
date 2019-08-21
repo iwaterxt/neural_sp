@@ -65,7 +65,7 @@ def eval_word(models, dataset, recog_params, epoch,
 
     with open(hyp_trn_save_path, 'w') as f_hyp, open(ref_trn_save_path, 'w') as f_ref:
         while True:
-            batch, is_new_epoch = dataset.next(recog_params['recog_batch_size'])
+            batch, is_new_epoch = dataset.getitem(recog_params['recog_batch_size'])
             best_hyps_id, aws, _ = models[0].decode(
                 batch['xs'], recog_params, dataset.idx2token[0],
                 exclude_eos=True,
