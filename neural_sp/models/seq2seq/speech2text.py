@@ -261,7 +261,6 @@ class Speech2Text(ModelBase):
                     ctc_lsm_prob=args.ctc_lsm_prob,
                     ctc_fc_list=[int(fc) for fc in args.ctc_fc_list.split(
                         '_')] if args.ctc_fc_list is not None and len(args.ctc_fc_list) > 0 else [],
-                    input_feeding=args.input_feeding,
                     backward=(dir == 'bwd'),
                     lm_fusion=lm_fusion,
                     lm_fusion_type=args.lm_fusion_type,
