@@ -49,14 +49,14 @@ def pad_list(xs, value, pad_left=False):
     for item in xs:
         if pad_left:
             if item.shape[0] != max_time:
-                mat = np.zeros((max_time, item.shape[1]))
+                mat = np.zeros((max_time, item.shape[1]), dtype=float)
                 mat[-item.shape[1]:,:] = item
                 xs_pad.append(mat)
             else:
                 xs_pad.append(item)
         else:
             if item.shape[0] != max_time:
-                mat = np.zeros((max_time, item.shape[1]))
+                mat = np.zeros((max_time, item.shape[1]), dtype=float)
                 mat[:item.shape[0],:] = item
                 xs_pad.append(mat)
             else:
