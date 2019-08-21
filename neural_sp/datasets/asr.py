@@ -451,6 +451,8 @@ class Dataset(data.Dataset):
         else:
             xs_org = [kaldiio.load_mat(self.df['feat_path'][i]) for i in df_indices]
             xs = pad_list(xs_org, 0.0)
+            for item in xs:
+                print (xs.shape)
         # outputs
         if self.is_test:
             ys = [self.token2idx[0](self.df['text'][i]) for i in df_indices]
