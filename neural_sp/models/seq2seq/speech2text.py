@@ -22,7 +22,7 @@ from neural_sp.models.seq2seq.decoders.attention_rnn import RNNDecoder
 from neural_sp.models.seq2seq.decoders.fwd_bwd_attention import fwd_bwd_attention
 from neural_sp.models.seq2seq.decoders.rnn_transducer import RNNTransducer
 from neural_sp.models.seq2seq.decoders.transformer import TransformerDecoder
-from neural_sp.models.seq2seq.decoders.transformer_transducer import TrasformerTransducer
+#from neural_sp.models.seq2seq.decoders.transformer_transducer import TrasformerTransducer
 from neural_sp.models.seq2seq.encoders.build import build_encoder
 from neural_sp.models.seq2seq.frontends.frame_stacking import stack_frame
 from neural_sp.models.seq2seq.frontends.gaussian_noise import add_gaussian_noise
