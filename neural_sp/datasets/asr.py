@@ -451,6 +451,7 @@ class Dataset(data.Dataset):
             xs = []
         else:
             xs_org = [kaldiio.load_mat(self.df['feat_path'][i]) for i in df_indices]
+            print (len(xs_org))
             xs = pad_list(xs_org, 0.0)
         # outputs
         if self.is_test:
