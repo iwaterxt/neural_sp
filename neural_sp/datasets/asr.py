@@ -44,20 +44,21 @@ def count_vocab_size(dict_path):
 
 def pad_list(xs, value, pad_left=False):
     num = len(xs)
-    max_time = max(x.shape[1] for x in xs)
+    max_time = max(x.shape[0] for x in xs)
     xs_pad=[]
     for item in xs:
         if pad_left:
-            if item.shape[1] != max_time:
-                mat = np.zeros(shape[0], max_time)
-                mat[:,-item.shape[1]:] = item
+            if item.shape[0] != max_time:
+                mat = np.zeros(max_time, item.shape[1])
+                mat[-item.shape[1]:,:] = item
                 xs_pad.append(mat)
             else:
                 xs_pad.append(item)
         else:
-            if item.shape[1] != max_time:
-                mat = np.zeros(shape[0], max_time)
-                mat[:,:item.shape[1]] = item
+            if item.shape[0] != max_time:
+                mat = np.zeros(max_time, item.shape[1])
+                mat[:item.shape[0],:] = item
+                xs_pad.append(mat)
             else:
                 xs_pad.append(item)
 
