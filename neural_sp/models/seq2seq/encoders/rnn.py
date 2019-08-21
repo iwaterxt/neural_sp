@@ -414,7 +414,7 @@ class Padding(nn.Module):
 
     def forward(self, xs, xlens, rnn):
         xs = pack_padded_sequence(xs, xlens.tolist(), batch_first=True)
-        print (xs)
+        print xs.size()
         xs, _ = rnn(xs, hx=None)
         xs = pad_packed_sequence(xs, batch_first=True)[0]
         return xs
