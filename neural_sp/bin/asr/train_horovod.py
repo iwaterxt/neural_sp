@@ -318,8 +318,7 @@ def main():
                                        ys_next=batch_train['ys_next'],
                                        reporter=reporter)
                 else:
-                    loss, reporter = model(batch_train, reporter, task,
-                                       teacher=teacher, teacher_lm=teacher_lm)
+                    loss, reporter = model(batch_train, reporter, task)
                 loss.backward()
                 loss.detach()  # Trancate the graph
                 if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
