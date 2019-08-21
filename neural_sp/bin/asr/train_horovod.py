@@ -157,7 +157,7 @@ def main():
         train_set, num_replicas=hvd.size(), rank=hvd.rank())
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_per_allreduce,
-        sampler=train_sampler,**kwargs)
+        sampler=train_sampler)
 
     val_sampler = torch.utils.data.distributed.DistributedSampler(
         dev_set, num_replicas=hvd.size(), rank=hvd.rank())
@@ -306,7 +306,6 @@ def main():
         model.train()
 
         train_sampler.set_epoch(epoch)
-        print ("hello horovod!")
         # Compute loss in the training set
         for batch_train in enumerate(train_loader):
             print (batch_train)
