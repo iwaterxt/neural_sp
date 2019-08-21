@@ -309,6 +309,7 @@ def main():
 
         # Compute loss in the training set
         for batch_train in enumerate(train_loader):
+            print (batch_train)
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
 
             # Change mini-batch depending on task
@@ -377,10 +378,10 @@ def main():
             start_time_step = time.time()
             pbar_epoch.update(len(batch_train['utt_ids']))
 
-        # Save fugures of loss and accuracy
-        if optimizer.n_steps % (args.print_step * 10) == 0 and hvd.rank() == 0:
-            reporter.snapshot()
-            model.module.plot_attention()
+            # Save fugures of loss and accuracy
+            if optimizer.n_steps % (args.print_step * 10) == 0 and hvd.rank() == 0:
+                reporter.snapshot()
+                model.module.plot_attention()
 
         # Save checkpoint and evaluate model per epoch
         if hvd.rank() == 0:
