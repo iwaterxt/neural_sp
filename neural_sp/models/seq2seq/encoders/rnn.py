@@ -309,7 +309,6 @@ class RNNEncoder(EncoderBase):
 
         # Sort by lenghts in the descending order for pack_padded_sequence
         xlens, perm_ids = torch.IntTensor(xlens).sort(0, descending=True)
-        print (xlens)
         xs = xs[perm_ids]
         _, perm_ids_unsort = perm_ids.sort()
 
@@ -415,6 +414,7 @@ class Padding(nn.Module):
 
     def forward(self, xs, xlens, rnn):
         xs = pack_padded_sequence(xs, xlens.tolist(), batch_first=True)
+        print (xs)
         xs, _ = rnn(xs, hx=None)
         xs = pad_packed_sequence(xs, batch_first=True)[0]
         return xs
