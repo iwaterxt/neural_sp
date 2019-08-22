@@ -154,7 +154,7 @@ def main():
     # Horovod: use DistributedSampler to partition data among workers. Manually specify
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
     train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_set, num_replicas=hvd.size(), rank=hvd.rank())
+        train_set, num_replicas=hvd.size(), rank=hvd.rank(), shuffle=False)
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_per_allreduce,
         sampler=train_sampler)
