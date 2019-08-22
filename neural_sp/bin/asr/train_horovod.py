@@ -310,7 +310,7 @@ def main():
         for i, batch_train in enumerate(train_loader):
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
             batch_train['xs'] = [tensor2np(x) for x in batch_train['xs']]
-
+            print (batch_train['xs'][0].shape)
             # Change mini-batch depending on task
             for task in tasks:
                 if skip_thought:
