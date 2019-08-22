@@ -45,6 +45,7 @@ from neural_sp.trainers.optimizer import set_optimizer
 from neural_sp.trainers.reporter import Reporter
 from neural_sp.utils import mkdir_join
 from neural_sp.utils import host_ip
+from neural_sp.models.torch_utils import tensor2np
 
 
 torch.manual_seed(1)
