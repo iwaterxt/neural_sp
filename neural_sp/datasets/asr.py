@@ -316,12 +316,13 @@ class Dataset(data.Dataset):
             batch (dict):
 
         """
+        print (index)
         batch_size = self.batch_size
         if self.max_epoch is not None and self.epoch >= self.max_epoch:
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
 
-        df_indices, is_new_epoch = self.sample_index(batch_size)
+        df_indices, is_new_epoch = self.sample_index(batch_size,index)
         batch = self.make_batch(df_indices)
 
         if is_new_epoch:
@@ -352,7 +353,7 @@ class Dataset(data.Dataset):
         self.df_indices = list(self.df.index)
         self.offset = 0
 
-    def sample_index(self, batch_size):
+    def sample_index(self, batch_size, index):
         """Sample data indices of mini-batch.
 
         Args:
