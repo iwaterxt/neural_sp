@@ -368,7 +368,8 @@ def main():
             elif args.input_type == 'text':
                 xlen = max(len(x) for x in batch_train['ys'])
                 ylen = max(len(y) for y in batch_train['ys_sub1']
-            print(loss_dev)
+
+            #print(loss_dev)
             #logger.info(loss_dev)
             #logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
             #            (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
@@ -376,7 +377,7 @@ def main():
             #             optimizer.lr, len(batch_train['utt_ids']),
             #             xlen, ylen, duration_step / 60))
             #start_time_step = time.time()
-            pbar_epoch.update(len(batch_train['utt_ids']))
+            #pbar_epoch.update(len(batch_train['utt_ids']))
 
             # Save fugures of loss and accuracy
             if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
