@@ -452,7 +452,7 @@ class Speech2Text(ModelBase):
             loss_fwd, obs_fwd = self.dec_fwd(enc_outs['ys']['xs'], enc_outs['ys']['xlens'],
                                              batch['ys'], task, batch['ys_hist'], teacher_logits)
             loss += loss_fwd
-            if isinstance(self.dec_fwd, RNNTransducer) or isinstance(self.dec_fwd, TrasformerTransducer):
+            if isinstance(self.dec_fwd, RNNTransducer) :#or isinstance(self.dec_fwd, TrasformerTransducer):
                 observation['loss.transducer'] = obs_fwd['loss_transducer']
             else:
                 observation['loss.att'] = obs_fwd['loss_att']
