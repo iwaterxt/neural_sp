@@ -44,7 +44,6 @@ def count_vocab_size(dict_path):
 
 def pad_list(xs, value, pad_left=False):
     max_time = max(x.shape[0] for x in xs)
-    print (max_time)
     xs_pad=[]
     for item in xs:
         if pad_left:
@@ -318,7 +317,6 @@ class Dataset(data.Dataset):
 
         """
         batch_size = self.batch_size
-        print (batch_size)
         if self.max_epoch is not None and self.epoch >= self.max_epoch:
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
@@ -451,7 +449,6 @@ class Dataset(data.Dataset):
             xs = []
         else:
             xs_org = [kaldiio.load_mat(self.df['feat_path'][i]) for i in df_indices]
-            print (len(xs_org))
             xs = pad_list(xs_org, 0.0)
         # outputs
         if self.is_test:
