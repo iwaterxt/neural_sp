@@ -30,6 +30,7 @@ from neural_sp.models.seq2seq.frontends.sequence_summary import SequenceSummaryN
 from neural_sp.models.seq2seq.frontends.spec_augment import SpecAugment
 from neural_sp.models.seq2seq.frontends.splicing import splice
 from neural_sp.models.torch_utils import np2tensor
+from neural_sp.models.torch_utils import tensor2np
 from neural_sp.models.torch_utils import pad_list
 
 
