@@ -309,8 +309,8 @@ def main():
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
-            batch_train['xs'] = [tensor2np(x) for x in batch_train['xs']]
-            print (batch_train['xs'][0].shape)
+            batch_train['xs'] = [tensor2np(batch_train['xs'][0][0])]#[tensor2np(x) for x in batch_train['xs']]
+            #print (batch_train['xs'][0].shape)
             # Change mini-batch depending on task
             for task in tasks:
                 if skip_thought:
@@ -325,7 +325,7 @@ def main():
                 if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
                     if args.clip_grad_norm > 0:
                         total_norm = torch.nn.utils.clip_grad_norm_(
-                            model.module.parameters(), args.clip_grad_norm)
+                            model.parameters(), args.clip_grad_norm)
                         reporter.add_tensorboard_scalar('total_norm', total_norm)
                     optimizer.step()
                     # NOTE: this makes training very slow
@@ -338,14 +338,14 @@ def main():
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-            reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
+            #reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
             # NOTE: loss/acc/ppl are already added in the model
             reporter.step()
 
-            if optimizer.n_steps % args.print_step == 0:
+            if i % args.print_step == 0:
                 # Compute loss in the dev set
                 model.eval()
-                batch_dev = dev_set.getitem()
+                batch_dev = dev_set.__getitem__(0)
                 # Change mini-batch depending on task
                 for task in tasks:
                     if skip_thought:
@@ -367,17 +367,19 @@ def main():
                 ylen = max(len(y) for y in batch_train['ys'])
             elif args.input_type == 'text':
                 xlen = max(len(x) for x in batch_train['ys'])
-                ylen = max(len(y) for y in batch_train['ys_sub1'])
-            logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                        (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
-                         loss_train, loss_dev,
-                         optimizer.lr, len(batch_train['utt_ids']),
-                         xlen, ylen, duration_step / 60))
-            start_time_step = time.time()
+                ylen = max(len(y) for y in batch_train['ys_sub1']
+            print(loss_dev)
+            #logger.info(loss_dev)
+            #logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
+            #            (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
+            #             loss_train, loss_dev,
+            #             optimizer.lr, len(batch_train['utt_ids']),
+            #             xlen, ylen, duration_step / 60))
+            #start_time_step = time.time()
             pbar_epoch.update(len(batch_train['utt_ids']))
 
             # Save fugures of loss and accuracy
-            if optimizer.n_steps % (args.print_step * 10) == 0 and hvd.rank() == 0:
+            if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
                 reporter.snapshot()
                 model.module.plot_attention()
 
