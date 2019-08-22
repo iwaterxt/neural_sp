@@ -382,7 +382,7 @@ def main():
             # Save fugures of loss and accuracy
             if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
                 reporter.snapshot()
-                model.module.plot_attention()
+                model.plot_attention()
 
         # Save checkpoint and evaluate model per epoch
         if hvd.rank() == 0:
@@ -400,7 +400,7 @@ def main():
             else:
                 start_time_eval = time.time()
                 # dev
-                metric_dev = eval_epoch([model.module], dev_set, recog_params, args,
+                metric_dev = eval_epoch([model], dev_set, recog_params, args,
                                         optimizer.n_epochs + 1, logger)
                 optimizer.epoch(metric_dev)
                 reporter.epoch(metric_dev)
@@ -412,12 +412,12 @@ def main():
 
                     # test
                     for eval_set in eval_sets:
-                        eval_epoch([model.module], eval_set, recog_params, args,
+                        eval_epoch([model], eval_set, recog_params, args,
                                    optimizer.n_epochs, logger)
 
                     # start scheduled sampling
                     if args.ss_prob > 0:
-                        model.module.scheduled_sampling_trigger()
+                        model.scheduled_sampling_trigger()
 
                 duration_eval = time.time() - start_time_eval
                 logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
