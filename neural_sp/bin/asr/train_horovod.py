@@ -308,8 +308,8 @@ def main():
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
-            print(len(batch_train['xs']))
-            print(batch_train['xs'][0])
+            batch_train['xs'] = [tensor2np(x).float() for x in batch_train['xs']]
+
             # Change mini-batch depending on task
             for task in tasks:
                 if skip_thought:
