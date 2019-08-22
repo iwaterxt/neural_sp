@@ -515,8 +515,8 @@ class Speech2Text(ModelBase):
             if flip:
                 xs = [torch.from_numpy(np.flip(x, axis=0).copy()).float().cuda(self.device_id) for x in xs]
             else:           
-                #xs = [np2tensor(x, self.device_id).float() for x in xs]
-                xs = [x for x in xs]
+                xs = [np2tensor(x, self.device_id).float() for x in xs]
+                #xs = [x for x in xs]
                 #xs = pad_list(xs, 0.0)
 
             # SpecAugment
