@@ -308,9 +308,6 @@ class Dataset(data.Dataset):
         return len(self.df)
 
     def __getitem__(self, index):
-
-
-    def next(self):
         """Generate each mini-batch.
 
         Args:
