@@ -107,6 +107,9 @@ class SeqDataloader(DataLoader):
             'sessions': sessions,
             'text': text
         }
-        print (type(data['xs'][0]))
+
+        for key, value in data['xs'][0].items() :
+          print (key, value)
+        
         
         return data 
