@@ -340,7 +340,7 @@ class Dataset(data.Dataset):
             self.reset()
             self.epoch += 1
 
-        return batch, is_new_epoch
+        return batch
 
     @property
     def epoch_detail(self):
