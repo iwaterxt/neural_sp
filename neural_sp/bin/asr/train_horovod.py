@@ -299,7 +299,7 @@ def main():
     start_time_train = time.time()
     start_time_epoch = time.time()
     start_time_step = time.time()
-    pbar_epoch = tqdm(total=len(train_set))
+    pbar_epoch = tqdm(total=len(train_set)/hvd.size())
     accum_n_tokens = 0
     while True:
 
