@@ -428,10 +428,10 @@ class Speech2Text(ModelBase):
         if self.input_type == 'speech':
             if self.mtl_per_batch:
                 flip = True if 'bwd' in task else False
-                enc_outs = self.encode(batch['xs'], batch['xlens'], task, flip=flip)
+                enc_outs = self.encode(batch['xs'], task, flip=flip)
             else:
                 flip = True if self.bwd_weight == 1 else False
-                enc_outs = self.encode(batch['xs'], batch['xlens'], 'all', flip=flip)
+                enc_outs = self.encode(batch['xs'], 'all', flip=flip)
         else:
             enc_outs = self.encode(batch['ys_sub1'])
 
@@ -490,7 +490,7 @@ class Speech2Text(ModelBase):
 
         return loss, reporter
 
-    def encode(self, xs, xlens, task='all', flip=False):
+    def encode(self, xs, task='all', flip=False):
         """Encode acoustic or text features.
 
         Args:
@@ -501,7 +501,7 @@ class Speech2Text(ModelBase):
             enc_outs (dict):
 
         """
-        """
+        
         if self.input_type == 'speech':
             # Frame stacking
             if self.n_stacks > 1:
@@ -536,7 +536,7 @@ class Speech2Text(ModelBase):
             xs = [np2tensor(np.fromiter(x, dtype=np.int64), self.device_id) for x in xs]
             xs = pad_list(xs, self.pad)
             xs = self.embed(xs)
-        """
+        
         # encoder
         enc_outs = self.enc(xs, xlens, task.split('.')[0])
 
