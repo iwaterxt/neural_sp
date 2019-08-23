@@ -128,6 +128,5 @@ class SeqDataloader(DataLoader):
             'sessions': sessions,
             'text': text
         }
-        print (data['xs'])        
         
-        return batch 
+        return data 
