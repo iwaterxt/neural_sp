@@ -157,7 +157,7 @@ def main():
         train_set, num_replicas=hvd.size(), rank=hvd.rank())
     train_loader = torch.utils.data.DataLoader(
         train_set, batch_size=batch_per_allreduce,
-        sampler=train_sampler)
+        sampler=train_sampler, num_workers=1)
 
     val_sampler = torch.utils.data.distributed.DistributedSampler(
         dev_set, num_replicas=hvd.size(), rank=hvd.rank())
@@ -309,8 +309,6 @@ def main():
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
-            print (type(batch_train))
-            print (len(batch_train))
             # Change mini-batch depending on task
             for task in tasks:
                 if skip_thought:
