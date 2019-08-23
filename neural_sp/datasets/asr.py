@@ -321,8 +321,8 @@ class Dataset(data.Dataset):
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
 
-        df_indices, is_new_epoch = self.sample_index(batch_size,index)
-        batch = self.make_batch(df_indices)
+        #df_indices, is_new_epoch = self.sample_index(batch_size,index)
+        batch = self.make_batch(index)
 
         if is_new_epoch:
             # shuffle the whole data
