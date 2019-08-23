@@ -308,6 +308,9 @@ class Dataset(data.Dataset):
         return len(self.df)
 
     def __getitem__(self, index):
+
+
+    def next(self):
         """Generate each mini-batch.
 
         Args:
@@ -316,7 +319,6 @@ class Dataset(data.Dataset):
             batch (dict):
 
         """
-        print (index)
         batch_size = self.batch_size
         if self.max_epoch is not None and self.epoch >= self.max_epoch:
             raise StopIteration
@@ -341,7 +343,7 @@ class Dataset(data.Dataset):
             self.reset()
             self.epoch += 1
 
-        return batch
+        return batch, is_new_epoch
 
     @property
     def epoch_detail(self):

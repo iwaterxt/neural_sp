@@ -265,13 +265,12 @@ class CTC(DecoderBase):
                         score_lp = (len(hyp_id[1:]) + 1) * lp_weight
                         if lm_weight > 0 and lm is not None and lm_usage == 'shallow_fusion':
                             local_score_lm = lm_log_probs[0, 0, c].item() * lm_weight
-                            score_lm += local_score_lm
                         new_beam.append({'hyp_id': hyp_id + [c],
-                                         'score': score_ctc + score_lm + score_lp,
+                                         'score': score_ctc + score_lm + local_score_lm + score_lp,
                                          'p_b': new_p_b,
                                          'p_nb': new_p_nb,
                                          'score_ctc': score_ctc,
-                                         'score_lm': score_lm,
+                                         'score_lm': score_lm + local_score_lm,
                                          'score_lp': score_lp,
                                          'lmstate': lmstate,
                                          })
