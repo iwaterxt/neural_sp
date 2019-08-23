@@ -93,19 +93,5 @@ class SeqDataloader(DataLoader):
    
 
     def collate_fn(self, batch):
-        #print (batch[0]['xs'])
-        xs,xlens,ys,ys_hist,ys_sub1,ys_sub2,utt_ids,speakers,sessions,text=zip(batch)
-        data = {
-            'xs': xs,
-            'xlens': xlens,
-            'ys': ys,
-            'ys_hist': ys_hist,
-            'ys_sub1': ys_sub1,
-            'ys_sub2': ys_sub2,
-            'utt_ids': utt_ids,
-            'speakers': speakers,
-            'sessions': sessions,
-            'text': text
-        }
         
-        return data 
+        return batch 
