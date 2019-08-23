@@ -323,7 +323,7 @@ class Dataset(data.Dataset):
 
         #df_indices, is_new_epoch = self.sample_index(batch_size,index)
         batch = self.make_batch([index])
-
+        '''
         if is_new_epoch:
             # shuffle the whole data
             if self.epoch == self.sort_stop_epoch:
@@ -339,7 +339,7 @@ class Dataset(data.Dataset):
 
             self.reset()
             self.epoch += 1
-
+        '''
         return batch
 
     @property
