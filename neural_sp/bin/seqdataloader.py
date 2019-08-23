@@ -109,12 +109,12 @@ class SeqDataloader(DataLoader):
             xlens.append(item['xlens'][0])
             ys.append(item['ys'][0])
             ys_hist.append(item['ys_hist'][0])
-            ys_sub1.append(item['ys_sub1'][0])
-            ys_sub2.append(item['ys_sub2'][0])
+            ys_sub1.append(item['ys_sub1'])
+            ys_sub2.append(item['ys_sub2'])
             utt_ids.append(item['utt_ids'][0])
             speakers.append(item['speakers'][0])
             sessions.append(item['sessions'][0])
-            text.append(item['text'][0])
+            text.append(item['text'])
 
         data = {
             'xs': xs,
