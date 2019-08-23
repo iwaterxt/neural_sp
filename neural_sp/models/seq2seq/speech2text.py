@@ -510,6 +510,7 @@ class Speech2Text(ModelBase):
             # Splicing
             if self.n_splices > 1:
                 xs = [splice(x, self.n_splices, self.n_stacks) for x in xs]
+            print (xs[0])
             xlens = torch.IntTensor([len(x) for x in xs])
 
             # Flip acoustic features in the reverse order
