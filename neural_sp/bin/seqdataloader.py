@@ -93,6 +93,9 @@ class SeqDataloader(DataLoader):
    
 
     def collate_fn(self, batch):
+        print (type(batch))
+        print (type(batch['xs']))
+        '''
         xs = []
         xlens = []
         ys = []
@@ -128,5 +131,5 @@ class SeqDataloader(DataLoader):
             'text': text
         }
         print (data['xs'])        
-        
-        return data 
+        '''
+        return batch 
