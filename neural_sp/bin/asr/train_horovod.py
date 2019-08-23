@@ -46,7 +46,7 @@ from neural_sp.trainers.reporter import Reporter
 from neural_sp.utils import mkdir_join
 from neural_sp.utils import host_ip
 from neural_sp.models.torch_utils import tensor2np
-
+from neural_sp.bin.seqdataloader import SeqDataloader
 
 torch.manual_seed(1)
 torch.cuda.manual_seed_all(1)
@@ -153,16 +153,16 @@ def main():
     args.input_dim = train_set.input_dim
     # Horovod: use DistributedSampler to partition data among workers. Manually specify
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
-    train_sampler = torch.utils.data.distributed.DistributedSampler(
-        train_set, num_replicas=hvd.size(), rank=hvd.rank())
-    train_loader = torch.utils.data.DataLoader(
-        train_set, batch_size=batch_per_allreduce,
-        sampler=train_sampler, num_workers=1)
-
-    val_sampler = torch.utils.data.distributed.DistributedSampler(
-        dev_set, num_replicas=hvd.size(), rank=hvd.rank())
-    val_loader = torch.utils.data.DataLoader(dev_set, batch_size=batch_per_allreduce,
-                                         sampler=val_sampler)
+    train_loader = SeqDataLoader(train_set, 
+                                 batch_size=batch_per_allreduce,
+                                 num_workers = 0,
+                                 distributed=True
+                                )
+    val_loader = SeqDataLoader(dev_set, 
+                               batch_size=batch_per_allreduce,
+                               num_workers = 0,
+                               distributed=True
+                              )    
 
     # Load a LM conf file for LM fusion & LM initialization
     if not args.resume and (args.lm_fusion or args.lm_init):
