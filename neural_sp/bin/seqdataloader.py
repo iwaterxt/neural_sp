@@ -93,8 +93,28 @@ class SeqDataloader(DataLoader):
    
 
     def collate_fn(self, batch):
+        xs = []
+        xlens = []
+        ys = []
+        ys_hist = []
+        ys_sub1 = []
+        ys_sub2 = []
+        utt_ids = []
+        speakers = []
+        sessions = []
+        text = []
+        for item in batch:
+            xs.append(item['xs'])
+            xlens.append(item['xlens'])
+            ys.append(item['ys'])
+            ys_hist.append(item['ys_hist'])
+            ys_sub1.append(item['ys_sub1'])
+            ys_sub2.append(item['ys_sub2'])
+            utt_ids.append(item['utt_ids'])
+            speakers.append(item['speakers'])
+            sessions.append(item['sessions'])
+            text.append(item['text'])
 
-        xs,xlens,ys,ys_hist,ys_sub1,ys_sub2,utt_ids,speakers,sessions,text=zip(batch)
         data = {
             'xs': xs,
             'xlens': xlens,
@@ -106,10 +126,6 @@ class SeqDataloader(DataLoader):
             'speakers': speakers,
             'sessions': sessions,
             'text': text
-        }
-
-        for key, value in data['xs'][0].items() :
-          print (key, value)
-        
+        }        
         
         return data 
