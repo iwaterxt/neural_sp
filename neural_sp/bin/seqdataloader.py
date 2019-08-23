@@ -107,6 +107,6 @@ class SeqDataloader(DataLoader):
             'sessions': sessions,
             'text': text
         }
-        print (type(data['xs']))
+        print (type(data['xs'][0]))
         
         return data 
