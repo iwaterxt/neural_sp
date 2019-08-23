@@ -126,6 +126,7 @@ class SeqDataloader(DataLoader):
             'speakers': speakers,
             'sessions': sessions,
             'text': text
-        }        
+        }
+        print (data['xs'])        
         
         return data 
