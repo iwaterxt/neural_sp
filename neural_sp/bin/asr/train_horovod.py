@@ -301,6 +301,7 @@ def main():
     start_time_step = time.time()
     pbar_epoch = tqdm(total=len(train_set)/hvd.size())
     accum_n_tokens = 0
+    epochs = 0
     while True:
 
         model.train()
@@ -384,32 +385,32 @@ def main():
         if hvd.rank() == 0:
             duration_epoch = time.time() - start_time_epoch
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
-                        (optimizer.n_epochs + 1, duration_epoch / 60))
+                        (epochs + 1, duration_epoch / 60))
 
-            if optimizer.n_epochs + 1 < args.eval_start_epoch:
+            if epochs + 1 < args.eval_start_epoch:
                 optimizer.epoch()
                 reporter.epoch()
 
                 # Save the model
-                save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                save_checkpoint(model, save_path, optimizer, epochs,
                                 remove_old_checkpoints=not noam)
             else:
                 start_time_eval = time.time()
                 # dev
                 metric_dev = eval_epoch([model], dev_set, recog_params, args,
-                                        optimizer.n_epochs + 1, logger)
+                                        epochs + 1, logger)
                 optimizer.epoch(metric_dev)
                 reporter.epoch(metric_dev)
 
                 if optimizer.is_best:
                     # Save the model
-                    save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                    save_checkpoint(model, save_path, optimizer, epochs,
                                     remove_old_checkpoints=not noam)
 
                     # test
                     for eval_set in eval_sets:
                         eval_epoch([model], eval_set, recog_params, args,
-                                   optimizer.n_epochs, logger)
+                                   epochs, logger)
 
                     # start scheduled sampling
                     if args.ss_prob > 0:
@@ -418,31 +419,22 @@ def main():
                 duration_eval = time.time() - start_time_eval
                 logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
 
-                # Early stopping
-                if optimizer.is_early_stop:
-                    break
-
                 # Convert to fine-tuning stage
-                if optimizer.n_epochs == args.convert_to_sgd_epoch:
-                    n_epochs = optimizer.n_epochs
-                    n_steps = optimizer.n_steps
+                if epochs == args.convert_to_sgd_epoch:
                     optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
-                    optimizer = LRScheduler(optimizer, args.lr,
-                                            decay_type='always',
-                                            decay_start_epoch=0,
-                                            decay_rate=0.5)
-                    optimizer._epoch = n_epochs
-                    optimizer._step = n_steps
+
+                    #optimizer._epoch = epochs
+                    #optimizer._step = steps
                     logger.info('========== Convert to SGD ==========')
 
             pbar_epoch = tqdm(total=len(train_set))
 
-            if optimizer.n_epochs == args.n_epochs:
+            if epochs == args.n_epochs:
                 break
 
             start_time_step = time.time()
             start_time_epoch = time.time()
-
+        epochs = epochs + 1
     duration_train = time.time() - start_time_train
     logger.info('Total time: %.2f hour' % (duration_train / 3600))
 
