@@ -85,7 +85,7 @@ def eval_char(models, dataset, recog_params, epoch,
 
             for b in range(len(batch['xs'])):
                 ref = batch['text'][b]
-                print (batch['text'][b])
+                print (type(batch['text'][b]))
                 hyp = dataset.idx2token[task_idx](best_hyps_id[b])
 
                 # Write to trn
