@@ -340,7 +340,7 @@ class Dataset(data.Dataset):
             self.epoch += 1
         '''
         return batch
-    def next(self, batch_size):
+    def next(self, batch_size=None):
         """Generate each mini-batch.
 
         Args:
@@ -349,6 +349,9 @@ class Dataset(data.Dataset):
             batch (dict):
 
         """
+        if batch_size is None:
+            batch_size = self.batch_size
+            
         if self.max_epoch is not None and self.epoch >= self.max_epoch:
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
