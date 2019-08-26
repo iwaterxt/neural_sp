@@ -10,12 +10,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
 import logging
 from tqdm import tqdm
 
 from neural_sp.evaluators.edit_distance import compute_wer
 from neural_sp.utils import mkdir_join
 
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 logger = logging.getLogger("decoding").getChild('character')
 
 
