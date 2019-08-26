@@ -11,6 +11,7 @@ from __future__ import division
 from __future__ import print_function
 
 import sys
+import io
 import logging
 from tqdm import tqdm
 
