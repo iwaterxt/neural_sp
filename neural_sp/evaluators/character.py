@@ -18,7 +18,6 @@ from tqdm import tqdm
 from neural_sp.evaluators.edit_distance import compute_wer
 from neural_sp.utils import mkdir_join
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 logger = logging.getLogger("decoding").getChild('character')
 
 
@@ -74,7 +73,7 @@ def eval_char(models, dataset, recog_params, epoch,
     elif task_idx == 3:
         task = 'ys_sub3'
 
-    with open(hyp_trn_save_path, 'w') as f_hyp, open(ref_trn_save_path, 'w') as f_ref:
+    with open(hyp_trn_save_path, 'w', encoding='utf-8') as f_hyp, open(ref_trn_save_path, 'w', encoding='utf-8') as f_ref:
         while True:
             batch, is_new_epoch = dataset.next(recog_params['recog_batch_size'])
             best_hyps_id, _, _ = models[0].decode(

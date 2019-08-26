@@ -201,10 +201,10 @@ def main():
         torch.backends.cudnn.benchmark = True
         model.cuda()
 
-    epoch = 0
+    epochs = 0
     if args.resume and hvd.rank() == 0:
         # Set optimizer
-        epoch = int(args.resume.split('-')[-1])
+        epochs = int(args.resume.split('-')[-1])
         optimizer = set_optimizer(model, 'sgd' if epoch > conf['convert_to_sgd_epoch'] else conf['optimizer'],
                                   conf['lr'], conf['weight_decay'])
 
