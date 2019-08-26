@@ -388,7 +388,7 @@ def main():
                         (epochs + 1, duration_epoch / 60))
 
             if epochs + 1 < args.eval_start_epoch:
-                optimizer.epoch()
+                #optimizer.epoch()
                 reporter.epoch()
 
                 # Save the model
