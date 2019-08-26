@@ -342,7 +342,7 @@ def main():
             if i % args.print_step == 0:
                 # Compute loss in the dev set
                 model.eval()
-                batch_dev = dev_set.__getitem__(0)
+                batch_dev = dev_set.next()[0]
                 # Change mini-batch depending on task
                 for task in tasks:
                     if skip_thought:
