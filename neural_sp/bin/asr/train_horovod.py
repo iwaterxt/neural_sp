@@ -376,7 +376,7 @@ def main():
                 logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
                             (i, epochs + train_set.epoch_detail,
                              loss_train, loss_dev,
-                             optimizer.lr, len(batch_train['utt_ids']),
+                             args.lr, len(batch_train['utt_ids']),
                              xlen, ylen, duration_step / 60))
                 start_time_step = time.time()
             pbar_epoch.update(len(batch_train['utt_ids']))
