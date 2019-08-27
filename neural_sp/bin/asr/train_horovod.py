@@ -368,11 +368,11 @@ def main():
 
                 logger.info(loss_dev)
                 logger.info(loss_train)
-                #logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                #            (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
-                #             loss_train, loss_dev,
-                #             optimizer.lr, len(batch_train['utt_ids']),
-                #             xlen, ylen, duration_step / 60))
+                logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
+                            (i, epochs + train_set.epoch_detail,
+                             loss_train, loss_dev,
+                             optimizer.lr, len(batch_train['utt_ids']),
+                             xlen, ylen, duration_step / 60))
                 start_time_step = time.time()
             pbar_epoch.update(len(batch_train['utt_ids']))
 
@@ -392,57 +392,6 @@ def main():
             save_checkpoint(model, save_path, optimizer, epochs,
                                 remove_old_checkpoints=True)
 
-
-            '''
-            if epochs + 1 < args.eval_start_epoch:
-                #optimizer.epoch()
-                reporter.epoch()
-
-                # Save the model
-                save_checkpoint(model, save_path, optimizer, epochs,
-                                remove_old_checkpoints=not noam)
-            else:
-                start_time_eval = time.time()
-                # dev
-                metric_dev = eval_epoch([model], dev_set, recog_params, args,
-                                        epochs + 1, logger)
-                optimizer.epoch(metric_dev)
-                reporter.epoch(metric_dev)
-
-                if optimizer.is_best:
-                    # Save the model
-                    save_checkpoint(model, save_path, optimizer, epochs,
-                                    remove_old_checkpoints=not noam)
-
-                    # test
-                    for eval_set in eval_sets:
-                        eval_epoch([model], eval_set, recog_params, args,
-                                   epochs, logger)
-
-                    # start scheduled sampling
-                    if args.ss_prob > 0:
-                        model.scheduled_sampling_trigger()
-
-                duration_eval = time.time() - start_time_eval
-                logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
-
-                # Convert to fine-tuning stage
-                if epochs == args.convert_to_sgd_epoch:
-                    optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
-
-                    #optimizer._epoch = epochs
-                    #optimizer._step = steps
-                    logger.info('========== Convert to SGD ==========')
-
-            pbar_epoch = tqdm(total=len(train_set))
-
-            if epochs == args.n_epochs:
-                break
-
-            start_time_step = time.time()
-            start_time_epoch = time.time()
-
-            '''
         pbar_epoch = tqdm(total=len(train_set))
         start_time_step = time.time()
         start_time_epoch = time.time()
