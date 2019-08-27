@@ -249,7 +249,7 @@ def main():
         optimizer = hvd.DistributedOptimizer(
                 optimizer, named_parameters=model.named_parameters(),
                 compression=compression,
-                backward_passes_per_step=args.batch_per_allreduce)
+                backward_passes_per_step=batch_per_allreduce)
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
     else:
@@ -311,9 +311,11 @@ def main():
       with tqdm(total=len(train_set)/hvd.size(),
               desc='Train Epoch     #{}'.format(epochs + 1),
               disable=not verbose) as pbar_epoch:
-        
+        start_time_step = time.time()
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
+            print ("load data time is: ", time.time() - start_time_step)
+            start_time_step = time.time()
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
             # Change mini-batch depending on task
             for task in tasks:
@@ -342,6 +344,7 @@ def main():
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
+            print ("training one batch time is: ", time.time() - start_time_step)
             #reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
             # NOTE: loss/acc/ppl are already added in the model
             reporter.step()
@@ -447,6 +450,7 @@ def eval_epoch(models, dataset, recog_params, args, epoch, logger):
 
 if __name__ == '__main__':
     # Setting for profiling
-    pr = cProfile.Profile()
-    save_path = pr.runcall(main)
-    pr.dump_stats(os.path.join(save_path, 'train.profile'))
+    main()
+    #pr = cProfile.Profile()
+    #save_path = pr.runcall(main)
+    #pr.dump_stats(os.path.join(save_path, 'train.profile'))
