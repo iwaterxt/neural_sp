@@ -312,7 +312,7 @@ def main():
         start_time_step = time.time()
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
-            print ("load data time is: ", time.time() - start_time_step)
+            #print ("load data time is: ", time.time() - start_time_step)
             start_time_step = time.time()
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
             # Change mini-batch depending on task
@@ -331,7 +331,7 @@ def main():
                         total_norm = torch.nn.utils.clip_grad_norm_(
                             model.parameters(), args.clip_grad_norm)
                         reporter.add_tensorboard_scalar('total_norm', total_norm)
-                    print ("forward backward time is: ", time.time() - start_time_step)
+                    #print ("forward backward time is: ", time.time() - start_time_step)
                     optimizer.step()
                     
                     # NOTE: this makes training very slow
@@ -340,13 +340,13 @@ def main():
                     #         n = n.replace('.', '/')
                     #         reporter.add_tensorboard_histogram(n, p.data.cpu().numpy())
                     #         reporter.add_tensorboard_histogram(n + '/grad', p.grad.data.cpu().numpy())
-                    print ("optimizer time is: ", time.time() - start_time_step)
+                    #print ("optimizer time is: ", time.time() - start_time_step)
                     optimizer.zero_grad()
 
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-            print ("training one batch time is: ", time.time() - start_time_step)
+            #print ("training one batch time is: ", time.time() - start_time_step)
             #reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
             # NOTE: loss/acc/ppl are already added in the model
             reporter.step()
