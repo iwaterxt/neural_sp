@@ -246,10 +246,8 @@ def main():
 
         compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
 
-        optimizer = hvd.DistributedOptimizer(
-                optimizer, named_parameters=model.named_parameters(),
-                compression=compression,
-                backward_passes_per_step=batch_per_allreduce)
+        optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+        
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
     else:
