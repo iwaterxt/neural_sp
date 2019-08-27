@@ -386,7 +386,13 @@ def main():
             duration_epoch = time.time() - start_time_epoch
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
                         (epochs + 1, duration_epoch / 60))
+            
+            reporter.epoch()
+            # Save the model
+            save_checkpoint(model, save_path, optimizer, epochs,
+                                remove_old_checkpoints=not noam)
 
+            '''
             if epochs + 1 < args.eval_start_epoch:
                 #optimizer.epoch()
                 reporter.epoch()
@@ -434,6 +440,7 @@ def main():
 
             start_time_step = time.time()
             start_time_epoch = time.time()
+            '''
         epochs = epochs + 1
     duration_train = time.time() - start_time_train
     logger.info('Total time: %.2f hour' % (duration_train / 3600))
