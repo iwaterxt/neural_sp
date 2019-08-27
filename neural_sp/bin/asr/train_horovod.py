@@ -377,9 +377,9 @@ def main():
             pbar_epoch.update(len(batch_train['utt_ids']))
 
             # Save fugures of loss and accuracy
-            if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
-                reporter.snapshot()
-                model.plot_attention()
+            #if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
+                #reporter.snapshot()
+                #model.plot_attention()
 
         # Save checkpoint and evaluate model per epoch
         if hvd.rank() == 0:
