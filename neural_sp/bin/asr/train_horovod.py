@@ -188,8 +188,9 @@ def main():
             save_path = set_save_path(save_path)  # avoid overwriting
 
     # Set logger
-    logger = set_logger(os.path.join(save_path, 'train.log'),
-                        key='training', stdout=args.stdout)
+    if hvd.rank() == 0:
+        logger = set_logger(os.path.join(save_path, 'train.log'),
+                            key='training', stdout=args.stdout)
     # Set process name
     logger.info('PID: %s' % os.getpid())
     logger.info('USERNAME: %s' % os.uname()[1])
