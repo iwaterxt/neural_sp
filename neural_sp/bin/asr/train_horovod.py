@@ -391,7 +391,7 @@ def main():
             #if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
                 #reporter.snapshot()
                 #model.plot_attention()
-
+            start_time_step = time.time()
         # Save checkpoint and evaluate model per epoch
         if hvd.rank() == 0:
             duration_epoch = time.time() - start_time_epoch
