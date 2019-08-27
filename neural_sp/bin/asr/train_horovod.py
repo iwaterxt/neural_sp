@@ -327,12 +327,12 @@ def main():
                 else:
                     loss, reporter = model(batch_train, reporter, task)
                 loss.backward()
-                loss.detach()  # Trancate the graph
+                #loss.detach()  # Trancate the graph
                 if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
                     if args.clip_grad_norm > 0:
                         total_norm = torch.nn.utils.clip_grad_norm_(
                             model.parameters(), args.clip_grad_norm)
-                        reporter.add_tensorboard_scalar('total_norm', total_norm)
+                        #reporter.add_tensorboard_scalar('total_norm', total_norm)
                     optimizer.step()
                     # NOTE: this makes training very slow
                     # for n, p in model.module.named_parameters():
