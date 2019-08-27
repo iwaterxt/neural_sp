@@ -301,10 +301,14 @@ def main():
     start_time_epoch = time.time()
     start_time_step = time.time()
     accum_n_tokens = 0
-    epochs = 1
+    epochs = 0
     while True:
-        pbar_epoch = tqdm(total=len(train_set)/hvd.size())
-        model.train()
+      model.train()
+        #pbar_epoch = tqdm(total=len(train_set)/hvd.size())
+      with tqdm(total=len(train_loader),
+              desc='Train Epoch     #{}'.format(epochs + 1),
+              disable=not verbose) as pbar_epoch:
+        
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
@@ -392,15 +396,19 @@ def main():
             save_checkpoint(model, save_path, optimizer, epochs,
                                 remove_old_checkpoints=True)
 
-        pbar_epoch = tqdm(total=len(train_set))
+        #pbar_epoch = tqdm(total=len(train_set))
+
+        if epochs == args.n_epochs:
+            break
         start_time_step = time.time()
         start_time_epoch = time.time()
         epochs = epochs + 1
+        
     duration_train = time.time() - start_time_train
     logger.info('Total time: %.2f hour' % (duration_train / 3600))
 
     reporter.tf_writer.close()
-    pbar_epoch.close()
+    #pbar_epoch.close()
 
     return save_path
 
