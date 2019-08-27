@@ -100,7 +100,7 @@ def main():
                         n_epochs=args.n_epochs,
                         min_n_frames=args.min_n_frames,
                         max_n_frames=args.max_n_frames,
-                        sort_by=None,
+                        sort_by='input',
                         short2long=True,
                         sort_stop_epoch=args.sort_stop_epoch,
                         dynamic_batching=args.dynamic_batching,
@@ -287,7 +287,6 @@ def main():
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
     # Set reporter
     reporter = Reporter(save_path)
-
     if args.mtl_per_batch:
         # NOTE: from easier to harder tasks
         tasks = []
