@@ -300,11 +300,10 @@ def main():
     start_time_train = time.time()
     start_time_epoch = time.time()
     start_time_step = time.time()
-    pbar_epoch = tqdm(total=len(train_set)/hvd.size())
     accum_n_tokens = 0
     epochs = 0
     while True:
-
+        pbar_epoch = tqdm(total=len(train_set)/hvd.size())
         model.train()
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
