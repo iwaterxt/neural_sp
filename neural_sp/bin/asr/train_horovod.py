@@ -333,9 +333,9 @@ def main():
                         total_norm = torch.nn.utils.clip_grad_norm_(
                             model.parameters(), args.clip_grad_norm)
                         reporter.add_tensorboard_scalar('total_norm', total_norm)
-                    start_time_step = time.time()
+                    print ("forward backward time is: ", time.time() - start_time_step)
                     optimizer.step()
-                    print ("optimize time is: ", time.time() - start_time_step)
+                    
                     # NOTE: this makes training very slow
                     # for n, p in model.module.named_parameters():
                     #     if p.grad is not None:
