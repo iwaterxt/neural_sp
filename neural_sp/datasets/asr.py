@@ -121,7 +121,7 @@ class Dataset(data.Dataset):
             assert sort_by in ['input', 'output']
         self.sort_stop_epoch = sort_stop_epoch
         self.sort_by = sort_by
-        assert sort_by in ['input', 'output', 'shuffle', 'utt_id']
+        assert sort_by in ['input', 'output', 'shuffle', 'utt_id', None]
         self.dynamic_batching = dynamic_batching
         self.corpus = corpus
         self.discourse_aware = discourse_aware
@@ -294,6 +294,8 @@ class Dataset(data.Dataset):
                 df = df.sort_values(by=['ylen'], ascending=short2long)
             elif sort_by == 'shuffle':
                 df = df.reindex(np.random.permutation(self.df.index))
+            elif sort_by == None:
+                pass
 
         for i in range(1, 3):
             if getattr(self, 'df_sub' + str(i)) is not None:
