@@ -302,6 +302,7 @@ def main():
     start_time_step = time.time()
     accum_n_tokens = 0
     epochs = 0
+    verbose = 1 if hvd.rank() == 0 else 0
     while True:
       model.train()
         #pbar_epoch = tqdm(total=len(train_set)/hvd.size())
@@ -403,7 +404,7 @@ def main():
         start_time_step = time.time()
         start_time_epoch = time.time()
         epochs = epochs + 1
-        
+
     duration_train = time.time() - start_time_train
     logger.info('Total time: %.2f hour' % (duration_train / 3600))
 
