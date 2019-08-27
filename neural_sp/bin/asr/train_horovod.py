@@ -80,7 +80,7 @@ def main():
         subsample_factor = np.prod(subsample)
 
     skip_thought = 'skip' in args.enc_type
-    batch_per_allreduce = args.batch_size * 10
+    batch_per_allreduce = args.batch_size 
     # Load dataset
     train_set = Dataset(corpus=args.corpus,
                         tsv_path=args.train_set,
