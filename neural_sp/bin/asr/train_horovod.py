@@ -80,7 +80,7 @@ def main():
         subsample_factor = np.prod(subsample)
 
     skip_thought = 'skip' in args.enc_type
-    batch_per_allreduce = args.batch_size
+    batch_per_allreduce = args.batch_size * 10
     # Load dataset
     train_set = Dataset(corpus=args.corpus,
                         tsv_path=args.train_set,
@@ -308,7 +308,7 @@ def main():
     while True:
       model.train()
         #pbar_epoch = tqdm(total=len(train_set)/hvd.size())
-      with tqdm(total=len(train_loader),
+      with tqdm(total=len(train_set)/hvd.size(),
               desc='Train Epoch     #{}'.format(epochs + 1),
               disable=not verbose) as pbar_epoch:
         
