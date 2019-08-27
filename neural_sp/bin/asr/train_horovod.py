@@ -191,11 +191,12 @@ def main():
     if hvd.rank() == 0:
         logger = set_logger(os.path.join(save_path, 'train.log'),
                             key='training', stdout=args.stdout)
-    # Set process name
-    logger.info('PID: %s' % os.getpid())
-    logger.info('USERNAME: %s' % os.uname()[1])
+        # Set process name
+        logger.info('PID: %s' % os.getpid())
+        logger.info('USERNAME: %s' % os.uname()[1])
+        logger.info('NUMBER_DEVICES: %s' % hvd.size())
     
-    setproctitle(args.job_name if args.job_name else dir_name)
+        setproctitle(args.job_name if args.job_name else dir_name)
     # Model setting
     model = Speech2Text(args, save_path) 
     # GPU setting
@@ -261,15 +262,16 @@ def main():
         if args.nlsyms:
             shutil.copy(args.nlsyms, os.path.join(save_path, 'nlsyms.txt'))
 
-        for k, v in sorted(vars(args).items(), key=lambda x: x[0]):
-            logger.info('%s: %s' % (k, str(v)))
+        if hvd.rank() == 0:
+            for k, v in sorted(vars(args).items(), key=lambda x: x[0]):
+                logger.info('%s: %s' % (k, str(v)))
 
-        # Count total parameters
-        for n in sorted(list(model.num_params_dict.keys())):
-            n_params = model.num_params_dict[n]
-            logger.info("%s %d" % (n, n_params))
-        logger.info("Total %.2f M parameters" % (model.total_parameters / 1000000))
-        logger.info(model)
+            # Count total parameters
+            for n in sorted(list(model.num_params_dict.keys())):
+                n_params = model.num_params_dict[n]
+                logger.info("%s %d" % (n, n_params))
+            logger.info("Total %.2f M parameters" % (model.total_parameters / 1000000))
+            logger.info(model)
 
         # Set optimizer
         optimizer = set_optimizer(model, args.optimizer, args.lr, args.weight_decay)
@@ -372,13 +374,14 @@ def main():
                     xlen = max(len(x) for x in batch_train['ys'])
                     ylen = max(len(y) for y in batch_train['ys_sub1'])
 
-                logger.info(loss_dev)
-                logger.info(loss_train)
-                logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                            (i, epochs + train_set.epoch_detail,
-                             loss_train, loss_dev,
-                             args.lr, len(batch_train['utt_ids']),
-                             xlen, ylen, duration_step / 60))
+                if hvd.rank() == 0:
+                    logger.info(loss_dev)
+                    logger.info(loss_train)
+                    logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
+                                (i, epochs + train_set.epoch_detail,
+                                loss_train, loss_dev,
+                                args.lr, len(batch_train['utt_ids']),
+                                xlen, ylen, duration_step / 60))
                 start_time_step = time.time()
             pbar_epoch.update(len(batch_train['utt_ids']))
 
@@ -407,7 +410,8 @@ def main():
         epochs = epochs + 1
 
     duration_train = time.time() - start_time_train
-    logger.info('Total time: %.2f hour' % (duration_train / 3600))
+    if hvd.rank() == 0:
+        logger.info('Total time: %.2f hour' % (duration_train / 3600))
 
     reporter.tf_writer.close()
     #pbar_epoch.close()
