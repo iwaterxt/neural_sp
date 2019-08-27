@@ -154,12 +154,12 @@ def main():
     # Horovod: use DistributedSampler to partition data among workers. Manually specify
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
     train_loader = SeqDataloader(train_set, 
-                                 batch_size=batch_per_allreduce,
+                                 batch_size=args.batch_size,
                                  num_workers = 0,
                                  distributed=True
                                 )
     val_loader = SeqDataloader(dev_set, 
-                               batch_size=batch_per_allreduce,
+                               batch_size=args.batch_size,
                                num_workers = 0,
                                distributed=True
                               )    
