@@ -247,7 +247,7 @@ def main():
         compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
 
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
-        
+
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
     else:
@@ -340,7 +340,9 @@ def main():
                     #         n = n.replace('.', '/')
                     #         reporter.add_tensorboard_histogram(n, p.data.cpu().numpy())
                     #         reporter.add_tensorboard_histogram(n + '/grad', p.grad.data.cpu().numpy())
+                    print ("optimizer time is: ", time.time() - start_time_step)
                     optimizer.zero_grad()
+
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
