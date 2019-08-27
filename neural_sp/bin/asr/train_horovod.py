@@ -196,7 +196,7 @@ def main():
         logger.info('USERNAME: %s' % os.uname()[1])
         logger.info('NUMBER_DEVICES: %s' % hvd.size())
     
-        setproctitle(args.job_name if args.job_name else dir_name)
+    setproctitle(args.job_name if args.job_name else dir_name)
     # Model setting
     model = Speech2Text(args, save_path) 
     # GPU setting
