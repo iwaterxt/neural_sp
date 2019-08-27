@@ -209,7 +209,7 @@ def main():
                                   conf['lr'], conf['weight_decay'])
 
         # Wrap optimizer by learning rate scheduler
-        noam = 'transformer' in conf['enc_type'] or conf['dec_type'] == 'transformer'
+        #noam = 'transformer' in conf['enc_type'] or conf['dec_type'] == 'transformer'
         optimizer = LRScheduler(optimizer, conf['lr'],
                                 decay_type=conf['lr_decay_type'],
                                 decay_start_epoch=conf['lr_decay_start_epoch'],
@@ -386,11 +386,11 @@ def main():
             duration_epoch = time.time() - start_time_epoch
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
                         (epochs + 1, duration_epoch / 60))
-            
+
             reporter.epoch()
             # Save the model
             save_checkpoint(model, save_path, optimizer, epochs,
-                                remove_old_checkpoints=not noam)
+                                remove_old_checkpoints=True)
 
             '''
             if epochs + 1 < args.eval_start_epoch:
