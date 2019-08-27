@@ -301,7 +301,7 @@ def main():
     start_time_epoch = time.time()
     start_time_step = time.time()
     accum_n_tokens = 0
-    epochs = 0
+    epochs = 1
     while True:
         pbar_epoch = tqdm(total=len(train_set)/hvd.size())
         model.train()
