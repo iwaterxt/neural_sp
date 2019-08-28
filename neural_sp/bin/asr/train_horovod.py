@@ -356,7 +356,6 @@ def main():
                         loss, reporter = model(batch_dev, reporter, task, is_eval=True)
                     loss_dev = loss.item()
                     del loss
-                print (batch_dev['ys'])
 
                 reporter.step(is_eval=True)
 
@@ -390,13 +389,10 @@ def main():
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
                         (epochs + 1, duration_epoch / 60))
 
-            if optimizer.n_epochs + 1 < args.eval_start_epoch:
-                reporter.epoch()
-                # Save the model
-                save_checkpoint(model, save_path, optimizer, epochs, remove_old_checkpoints=True)
-            else:
-                start_time_eval = time.time()
-
+            reporter.epoch()
+            # Save the model
+            save_checkpoint(model, save_path, optimizer, epochs,
+                                remove_old_checkpoints=True)
 
 
         if epochs == args.n_epochs:
