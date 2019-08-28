@@ -344,6 +344,8 @@ def main():
                 # Compute loss in the dev set
                 model.eval()
                 batch_dev = dev_set.next()[0]
+                print (type(batch_dev['ys']))
+                print batch_dev['ys']
                 # Change mini-batch depending on task
                 for task in tasks:
                     if skip_thought:
