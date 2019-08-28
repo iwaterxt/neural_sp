@@ -155,12 +155,12 @@ def main():
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
     train_loader = SeqDataloader(train_set, 
                                  batch_size=args.batch_size,
-                                 num_workers = hvd.size(),
+                                 num_workers = 1,
                                  distributed=True
                                 )
     val_loader = SeqDataloader(dev_set, 
                                batch_size=args.batch_size,
-                               num_workers = hvd.size(),
+                               num_workers = 1,
                                distributed=True
                               )    
 
