@@ -155,12 +155,12 @@ def main():
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
     train_loader = SeqDataloader(train_set, 
                                  batch_size=args.batch_size,
-                                 num_workers = 6,
+                                 num_workers = hvd.size(),
                                  distributed=True
                                 )
     val_loader = SeqDataloader(dev_set, 
                                batch_size=args.batch_size,
-                               num_workers = 6,
+                               num_workers = hvd.size(),
                                distributed=True
                               )    
 
@@ -305,14 +305,12 @@ def main():
     verbose = 1 if hvd.rank() == 0 else 0
     while True:
       model.train()
-        #pbar_epoch = tqdm(total=len(train_set)/hvd.size())
       with tqdm(total=len(train_set)/hvd.size(),
               desc='Train Epoch     #{}'.format(epochs + 1),
               disable=not verbose) as pbar_epoch:
         start_time_step = time.time()
         # Compute loss in the training set
         for i, batch_train in enumerate(train_loader):
-            #print ("load data time is: ", time.time() - start_time_step)
             start_time_step = time.time()
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
             # Change mini-batch depending on task
@@ -331,22 +329,13 @@ def main():
                         total_norm = torch.nn.utils.clip_grad_norm_(
                             model.parameters(), args.clip_grad_norm)
                         reporter.add_tensorboard_scalar('total_norm', total_norm)
-                    #print ("forward backward time is: ", time.time() - start_time_step)
                     optimizer.step()
                     
-                    # NOTE: this makes training very slow
-                    # for n, p in model.module.named_parameters():
-                    #     if p.grad is not None:
-                    #         n = n.replace('.', '/')
-                    #         reporter.add_tensorboard_histogram(n, p.data.cpu().numpy())
-                    #         reporter.add_tensorboard_histogram(n + '/grad', p.grad.data.cpu().numpy())
-                    #print ("optimizer time is: ", time.time() - start_time_step)
                     optimizer.zero_grad()
 
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-            #print ("training one batch time is: ", time.time() - start_time_step)
             #reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
             # NOTE: loss/acc/ppl are already added in the model
             reporter.step()
@@ -390,9 +379,9 @@ def main():
             pbar_epoch.update(len(batch_train['utt_ids']))
 
             # Save fugures of loss and accuracy
-            #if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
-                #reporter.snapshot()
-                #model.plot_attention()
+            if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
+                reporter.snapshot()
+                model.plot_attention()
             start_time_step = time.time()
         # Save checkpoint and evaluate model per epoch
         if hvd.rank() == 0:
@@ -405,7 +394,6 @@ def main():
             save_checkpoint(model, save_path, optimizer, epochs,
                                 remove_old_checkpoints=True)
 
-        #pbar_epoch = tqdm(total=len(train_set))
 
         if epochs == args.n_epochs:
             break
