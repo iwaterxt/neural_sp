@@ -250,6 +250,7 @@ def main():
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+
     else:
         # Save the conf file as a yaml file
         save_config(vars(args), os.path.join(save_path, 'conf.yml'))
@@ -284,6 +285,19 @@ def main():
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+        # Wrap optimizer by learning rate scheduler
+        noam = 'transformer' in args.enc_type or args.dec_type == 'transformer'
+        optimizer = LRScheduler(optimizer, args.lr,
+                                decay_type=args.lr_decay_type,
+                                decay_start_epoch=args.lr_decay_start_epoch,
+                                decay_rate=args.lr_decay_rate,
+                                decay_patient_n_epochs=args.lr_decay_patient_n_epochs,
+                                early_stop_patient_n_epochs=args.early_stop_patient_n_epochs,
+                                warmup_start_lr=args.warmup_start_lr,
+                                warmup_n_steps=args.warmup_n_steps,
+                                model_size=args.d_model,
+                                factor=args.lr_factor,
+                                noam=noam)
     # Set reporter
     reporter = Reporter(save_path)
     if args.mtl_per_batch:

@@ -21,7 +21,7 @@ class LRScheduler(object):
     """Learning rate scheduler (wrapper for optimizer).
 
     Args:
-        optimizer (torch.optim): optimizer
+
         base_lr (float): maximum of learning rate
         decay_type (str): always/metric
             always: decay per epoch regardless of validation metric
