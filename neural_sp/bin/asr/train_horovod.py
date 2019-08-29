@@ -204,15 +204,24 @@ def main():
         torch.backends.cudnn.benchmark = True
         model.cuda()
 
-    epochs = 0
-    if args.resume and hvd.rank() == 0:
+    if args.resume :
         # Set optimizer
         epochs = int(args.resume.split('-')[-1])
         optimizer = set_optimizer(model, 'sgd' if epoch > conf['convert_to_sgd_epoch'] else conf['optimizer'],
                                   conf['lr'], conf['weight_decay'])
 
+        if hvd.rank() == 0 :
+            # Restore the last saved model
+            model, optimizer = load_checkpoint(model, args.resume, optimizer, resume=True)
+
+        #broadcast
+        optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+
+        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         # Wrap optimizer by learning rate scheduler
         #noam = 'transformer' in conf['enc_type'] or conf['dec_type'] == 'transformer'
+
         optimizer = LRScheduler(optimizer, conf['lr'],
                                 decay_type=conf['lr_decay_type'],
                                 decay_start_epoch=conf['lr_decay_start_epoch'],
@@ -224,12 +233,8 @@ def main():
                                 model_size=conf['d_model'],
                                 factor=conf['lr_factor'],
                                 noam=noam)
-
-        # Restore the last saved model
-        model, optimizer = load_checkpoint(model, args.resume, optimizer, resume=True)
-
         # Resume between convert_to_sgd_epoch -1 and convert_to_sgd_epoch
-        if epoch == conf['convert_to_sgd_epoch']:
+        if epochs == conf['convert_to_sgd_epoch']:
             n_epochs = optimizer.n_epochs
             n_steps = optimizer.n_steps
             optimizer = set_optimizer(model, 'sgd', args.lr, conf['weight_decay'])
@@ -241,11 +246,6 @@ def main():
             optimizer._step = n_steps
             logger.info('========== Convert to SGD ==========')
         #broadcast
-        epoch = hvd.broadcast(torch.tensor(epoch), root_rank=0,
-                              name = 'epoch').item()
-
-        compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
-
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
@@ -317,7 +317,7 @@ def main():
     start_time_step = time.time()
     accum_n_tokens = 0
 
-    verbose = 0 if hvd.rank() == 0 else 1
+    verbose = 1 if hvd.rank() == 0 else 0
     while True:
       model.train()
       with tqdm(total=len(train_set)/hvd.size(),
