@@ -368,8 +368,6 @@ def main():
                     ylen = max(len(y) for y in batch_train['ys_sub1'])
 
                 if hvd.rank() == 0:
-                    logger.info(loss_dev)
-                    logger.info(loss_train)
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
                                 (i, epochs + train_set.epoch_detail,
                                 loss_train, loss_dev,
@@ -440,7 +438,7 @@ def eval_epoch(models, dataset, recog_params, args, epoch, logger):
 
 if __name__ == '__main__':
     # Setting for profiling
-    main()
-    #pr = cProfile.Profile()
-    #save_path = pr.runcall(main)
-    #pr.dump_stats(os.path.join(save_path, 'train.profile'))
+
+    pr = cProfile.Profile()
+    save_path = pr.runcall(main)
+    pr.dump_stats(os.path.join(save_path, 'train.profile'))
