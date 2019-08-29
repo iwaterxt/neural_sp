@@ -184,13 +184,3 @@ class LRScheduler(object):
         """
         self.__dict__.update(state_dict)
 
-# class NoamLR(_LRScheduler):
-#     def __init__(self, optimizer, warmup_n_steps):
-#         self.warmup_n_steps = warmup_n_steps
-#         super().__init__(optimizer)
-#
-#     def get_lr(self):
-#         last_epoch = max(1, self.last_epoch)
-#         scale = self.factor * (self.model_size ** -0.5) * min(last_epoch ** (-0.5),
-#                                                               last_epoch * self.warmup_n_steps ** (-1.5))
-#         return [base_lr * scale for base_lr in self.base_lrs]
