@@ -281,16 +281,18 @@ def main():
                 compression=hvd.Compression.none,
                 backward_passes_per_step=batch_per_allreduce)
 
-        optimizer = LRScheduler(optimizer, conf['lr'],
-                                decay_type=conf['lr_decay_type'],
-                                decay_start_epoch=conf['lr_decay_start_epoch'],
-                                decay_rate=conf['lr_decay_rate'],
-                                decay_patient_n_epochs=conf['lr_decay_patient_n_epochs'],
-                                early_stop_patient_n_epochs=conf['early_stop_patient_n_epochs'],
-                                warmup_start_lr=conf['warmup_start_lr'],
-                                warmup_n_steps=conf['warmup_n_steps'],
-                                model_size=conf['d_model'],
-                                factor=conf['lr_factor'],
+        # Wrap optimizer by learning rate scheduler
+        noam = 'transformer' in args.enc_type or args.dec_type == 'transformer'
+        optimizer = LRScheduler(optimizer, args.lr,
+                                decay_type=args.lr_decay_type,
+                                decay_start_epoch=args.lr_decay_start_epoch,
+                                decay_rate=args.lr_decay_rate,
+                                decay_patient_n_epochs=args.lr_decay_patient_n_epochs,
+                                early_stop_patient_n_epochs=args.early_stop_patient_n_epochs,
+                                warmup_start_lr=args.warmup_start_lr,
+                                warmup_n_steps=args.warmup_n_steps,
+                                model_size=args.d_model,
+                                factor=args.lr_factor,
                                 noam=noam)
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
