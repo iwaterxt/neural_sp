@@ -323,10 +323,8 @@ def main():
       with tqdm(total=len(train_set)/hvd.size(),
               desc='Train Epoch     #{}'.format(optimizer.n_epochs + 1),
               disable=not verbose) as pbar_epoch:
-        start_time_step = time.time()
         # Compute loss in the training set
         for _, batch_train in enumerate(train_loader):
-            start_time_step = time.time()
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
             # Change mini-batch depending on task
             for task in tasks:
@@ -351,6 +349,7 @@ def main():
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
+                torch.cuda.empty_cache()
             reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
             # NOTE: loss/acc/ppl are already added in the model
             reporter.step()
