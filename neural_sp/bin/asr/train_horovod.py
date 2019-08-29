@@ -278,9 +278,9 @@ def main():
         #compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
 
         optimizer = hvd.DistributedOptimizer(
-                optimizer, named_parameters=model.named_parameters(),
-                compression=hvd.Compression.none,
-                backward_passes_per_step=batch_per_allreduce)
+                        optimizer, named_parameters=model.named_parameters(),
+                        compression=hvd.Compression.none,
+                        backward_passes_per_step=batch_per_allreduce)
 
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
@@ -316,16 +316,16 @@ def main():
     start_time_epoch = time.time()
     start_time_step = time.time()
     accum_n_tokens = 0
-    epochs = 0
-    verbose = 1 if hvd.rank() == 0 else 0
+
+    verbose = 0 if hvd.rank() == 0 else 1
     while True:
       model.train()
       with tqdm(total=len(train_set)/hvd.size(),
-              desc='Train Epoch     #{}'.format(epochs + 1),
+              desc='Train Epoch     #{}'.format(optimizer.n_epochs + 1),
               disable=not verbose) as pbar_epoch:
         start_time_step = time.time()
         # Compute loss in the training set
-        for i, batch_train in enumerate(train_loader):
+        for _, batch_train in enumerate(train_loader):
             start_time_step = time.time()
             accum_n_tokens += sum([len(y) for y in batch_train['ys']])
             # Change mini-batch depending on task
@@ -351,11 +351,11 @@ def main():
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-            #reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
+            reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
             # NOTE: loss/acc/ppl are already added in the model
             reporter.step()
 
-            if i % args.print_step == 0:
+            if optimizer.n_steps % args.print_step == 0:
                 # Compute loss in the dev set
                 model.eval()
                 batch_dev = dev_set.next()[0]
@@ -384,15 +384,15 @@ def main():
 
                 if hvd.rank() == 0:
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                                (i, epochs + train_set.epoch_detail,
+                                (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
                                 loss_train, loss_dev,
-                                args.lr, len(batch_train['utt_ids']),
+                                optimizer.lr, len(batch_train['utt_ids']),
                                 xlen, ylen, duration_step / 60))
                 start_time_step = time.time()
             pbar_epoch.update(len(batch_train['utt_ids']))
 
             # Save fugures of loss and accuracy
-            if i % (args.print_step * 10) == 0 and hvd.rank() == 0:
+            if optimizer.n_steps % (args.print_step * 10) == 0 and hvd.rank() == 0:
                 reporter.snapshot()
                 model.plot_attention()
             start_time_step = time.time()
@@ -400,19 +400,63 @@ def main():
         if hvd.rank() == 0:
             duration_epoch = time.time() - start_time_epoch
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
-                        (epochs + 1, duration_epoch / 60))
+                        (optimizer.n_epochs + 1, duration_epoch / 60))
 
-            reporter.epoch()
-            # Save the model
-            save_checkpoint(model, save_path, optimizer, epochs,
-                                remove_old_checkpoints=True)
+            if optimizer.n_epochs + 1 < args.eval_start_epoch:
+                optimizer.epoch()
+                reporter.epoch()
+                # Save the model
+                save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                                    remove_old_checkpoints=not noam)
+            else:
+                start_time_eval = time.time()
+                # dev
+                metric_dev = eval_epoch([model.module], dev_set, recog_params, args,
+                                        optimizer.n_epochs + 1, logger)
+                optimizer.epoch(metric_dev)
+                reporter.epoch(metric_dev)
+
+                if optimizer.is_best:
+                    # Save the model
+                    save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                                    remove_old_checkpoints=not noam)
+                    # start scheduled sampling
+                    if args.ss_prob > 0:
+                        model.module.scheduled_sampling_trigger()
+
+                duration_eval = time.time() - start_time_eval
+                logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
+
+                # Early stopping
+                if optimizer.is_early_stop:
+                    break
+        # Convert to fine-tuning stage
+        if optimizer.n_epochs == args.convert_to_sgd_epoch:
+            n_epochs = optimizer.n_epochs
+            n_steps = optimizer.n_steps
+            optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
+            optimizer = hvd.DistributedOptimizer(
+                            optimizer, named_parameters=model.named_parameters(),
+                            compression=hvd.Compression.none,
+                            backward_passes_per_step=batch_per_allreduce)
 
 
-        if epochs == args.n_epochs:
+            hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+            hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+            optimizer = LRScheduler(optimizer, args.lr,
+                                    decay_type='always',
+                                    decay_start_epoch=0,
+                                    decay_rate=0.5)
+
+            optimizer._epoch = n_epochs
+            optimizer._step = n_steps
+            logger.info('========== Convert to SGD ==========')
+
+
+        if optimizer.n_epochs == args.n_epochs:
             break
         start_time_step = time.time()
         start_time_epoch = time.time()
-        epochs = epochs + 1
 
     duration_train = time.time() - start_time_train
     if hvd.rank() == 0:

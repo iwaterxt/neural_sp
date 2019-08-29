@@ -323,26 +323,12 @@ class Dataset(data.Dataset):
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
 
-        #df_indices, is_new_epoch = self.sample_index(batch_size,index)
         batch = self.make_batch([index])
-        '''
-        if is_new_epoch:
-            # shuffle the whole data
-            if self.epoch == self.sort_stop_epoch:
-                self.sort_by = 'shuffle'
-                self.df = self.df.reindex(np.random.permutation(self.df.index))
-                for i in range(1, 3):
-                    if getattr(self, 'df_sub' + str(i)) is not None:
-                        setattr(self, 'df_sub' + str(i),
-                                getattr(self, 'df_sub' + str(i)).reindex(self.df.index).reset_index())
 
-                # Re-indexing
-                self.df = self.df.reset_index()
+        self.df_indices.remove(index)
 
-            self.reset()
-            self.epoch += 1
-        '''
         return batch
+
     def next(self, batch_size=None):
         """Generate each mini-batch.
 
