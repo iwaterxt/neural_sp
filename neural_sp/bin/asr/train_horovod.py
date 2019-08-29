@@ -409,7 +409,7 @@ def main():
             else:
                 start_time_eval = time.time()
                 # dev
-                metric_dev = eval_epoch([model.module], dev_set, recog_params, args,
+                metric_dev = eval_epoch(model, dev_set, recog_params, args,
                                         optimizer.n_epochs + 1, logger)
                 optimizer.epoch(metric_dev)
                 reporter.epoch(metric_dev)

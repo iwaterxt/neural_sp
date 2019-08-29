@@ -487,8 +487,7 @@ class Speech2Text(ModelBase):
 
         if reporter is not None:
             reporter.add(observation, is_eval=not self.training)
-            
-        del enc_outs
+
         return loss, reporter
 
     def encode(self, xs, task='all', flip=False):
