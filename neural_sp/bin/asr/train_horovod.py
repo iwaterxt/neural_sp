@@ -420,7 +420,7 @@ def main():
                                     remove_old_checkpoints=not noam)
                     # start scheduled sampling
                     if args.ss_prob > 0:
-                        model.module.scheduled_sampling_trigger()
+                        model.scheduled_sampling_trigger()
 
                 duration_eval = time.time() - start_time_eval
                 logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
