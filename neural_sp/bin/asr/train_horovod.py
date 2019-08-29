@@ -349,7 +349,6 @@ def main():
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-                torch.cuda.empty_cache()
             reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
             # NOTE: loss/acc/ppl are already added in the model
             reporter.step()
