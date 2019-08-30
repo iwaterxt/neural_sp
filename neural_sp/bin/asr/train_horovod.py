@@ -395,39 +395,41 @@ def main():
                 model.plot_attention()
             start_time_step = time.time()
         # Save checkpoint and evaluate model per epoch
+        
+        duration_epoch = time.time() - start_time_epoch
         if hvd.rank() == 0:
-            duration_epoch = time.time() - start_time_epoch
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
                         (optimizer.n_epochs + 1, duration_epoch / 60))
 
-            if optimizer.n_epochs + 1 < args.eval_start_epoch:
-                optimizer.epoch()
-                reporter.epoch()
+        if optimizer.n_epochs + 1 < args.eval_start_epoch:
+            optimizer.epoch()
+            reporter.epoch()
+            # Save the model
+            if hvd.rank() == 0:
+                save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                                    remove_old_checkpoints=not noam)
+        else:
+            start_time_eval = time.time()
+                # dev
+            metric_dev = eval_epoch([model], dev_set, recog_params, args,
+                                        optimizer.n_epochs + 1, logger)
+            optimizer.epoch(metric_dev)
+            reporter.epoch(metric_dev)
+
+            if optimizer.is_best and hvd.rank() == 0:
                 # Save the model
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=not noam)
-            else:
-                start_time_eval = time.time()
-                # dev
-                metric_dev = eval_epoch([model], dev_set, recog_params, args,
-                                        optimizer.n_epochs + 1, logger)
-                optimizer.epoch(metric_dev)
-                reporter.epoch(metric_dev)
+                # start scheduled sampling
+                if args.ss_prob > 0:
+                    model.scheduled_sampling_trigger()
 
-                if optimizer.is_best:
-                    # Save the model
-                    save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
-                                    remove_old_checkpoints=not noam)
-                    # start scheduled sampling
-                    if args.ss_prob > 0:
-                        model.scheduled_sampling_trigger()
+            duration_eval = time.time() - start_time_eval
+            logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
 
-                duration_eval = time.time() - start_time_eval
-                logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
-
-                # Early stopping
-                if optimizer.is_early_stop:
-                    break
+            # Early stopping
+            if optimizer.is_early_stop:
+                break
         # Convert to fine-tuning stage
         if optimizer.n_epochs == args.convert_to_sgd_epoch:
             n_epochs = optimizer.n_epochs

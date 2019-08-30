@@ -539,7 +539,6 @@ class Speech2Text(ModelBase):
         
         # encoder
         enc_outs = self.enc(xs, xlens, task.split('.')[0])
-        del xs
         if self.main_weight < 1 and self.enc_type in ['conv', 'tds', 'gated_conv', 'transformer', 'conv_transformer']:
             for sub in ['sub1', 'sub2']:
                 enc_outs['ys_' + sub]['xs'] = enc_outs['ys']['xs'].clone()

@@ -33,7 +33,6 @@ def cross_entropy_lsm(logits, ys, lsm_prob, ignore_index):
     mask = (ys == ignore_index)
     ys_masked = ys.masked_fill(mask, 0)
     target_dist.scatter_(1, ys_masked.unsqueeze(1), 1 - lsm_prob)
-    del ys_masked
     log_probs = F.log_softmax(logits, dim=-1)
     loss = -torch.mul(target_dist, log_probs)
     loss_mean = loss.masked_fill(mask.unsqueeze(1), 0).sum() / (len(ys) - mask.sum())

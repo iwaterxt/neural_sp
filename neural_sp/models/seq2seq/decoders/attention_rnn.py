@@ -505,10 +505,6 @@ class RNNDecoder(DecoderBase):
                         self.dstate_prev[0][b] = dstates['dstate']['hxs'][b:b + 1].detach()
                         if self.dec_type == 'lstm':
                             self.dstate_prev[1][b] = dstates['dstate']['cxs'][b:b + 1].detach()
-        del ys_emb
-        del mask
-        del cv
-        del ys_in_pad
 
         if self.discourse_aware == 'state_carry_over':
             self.dstate_prev[0] = torch.cat(self.dstate_prev[0], dim=1)
@@ -559,7 +555,6 @@ class RNNDecoder(DecoderBase):
             acc = compute_accuracy(self.adaptive_softmax.log_prob(
                 logits.view((-1, logits.size(2)))), ys_out_pad, self.pad)
         ppl = np.exp(loss.item())
-        del logits
         # scale loss for CTC
         loss *= ylens.float().mean()
 
