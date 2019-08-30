@@ -421,11 +421,12 @@ def main():
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=not noam)
                 # start scheduled sampling
-                if args.ss_prob > 0:
-                    model.scheduled_sampling_trigger()
+            if args.ss_prob > 0:
+                model.scheduled_sampling_trigger()
 
             duration_eval = time.time() - start_time_eval
-            logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
+            hvd.rank() == 0
+                logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
 
             # Early stopping
             if optimizer.is_early_stop:
@@ -450,7 +451,8 @@ def main():
 
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
-            logger.info('========== Convert to SGD ==========')
+            if hvd.rank() == 0:
+                logger.info('========== Convert to SGD ==========')
 
 
         if optimizer.n_epochs == args.n_epochs:
