@@ -403,6 +403,7 @@ class RNNEncoder(EncoderBase):
         if self.n_layers_sub2 >= 1 and task == 'all':
             eouts['ys_sub2']['xs'] = xs_sub2
             eouts['ys_sub2']['xlens'] = xlens_sub2
+        del xs
         return eouts
 
 
