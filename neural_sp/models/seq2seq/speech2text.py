@@ -31,7 +31,7 @@ from neural_sp.models.seq2seq.frontends.spec_augment import SpecAugment
 from neural_sp.models.seq2seq.frontends.splicing import splice
 from neural_sp.models.torch_utils import np2tensor
 from neural_sp.models.torch_utils import pad_list
-from pytorch_memlab import profile
+#from pytorch_memlab import profile
 
 logger = logging.getLogger("training")
 
@@ -422,7 +422,7 @@ class Speech2Text(ModelBase):
         lmout, _ = lm.decode(ys_in_pad, None)
         logits = lm.output(lmout)
         return logits
-    @profile
+
     def _forward(self, batch, task, reporter, teacher=None, teacher_lm=None):
         # Encode input features
         if self.input_type == 'speech':
@@ -539,7 +539,7 @@ class Speech2Text(ModelBase):
         
         # encoder
         enc_outs = self.enc(xs, xlens, task.split('.')[0])
-
+        del xs
         if self.main_weight < 1 and self.enc_type in ['conv', 'tds', 'gated_conv', 'transformer', 'conv_transformer']:
             for sub in ['sub1', 'sub2']:
                 enc_outs['ys_' + sub]['xs'] = enc_outs['ys']['xs'].clone()
