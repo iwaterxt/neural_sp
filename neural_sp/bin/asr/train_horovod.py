@@ -425,7 +425,7 @@ def main():
                 model.scheduled_sampling_trigger()
 
             duration_eval = time.time() - start_time_eval
-            hvd.rank() == 0
+            if hvd.rank() == 0:
                 logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
 
             # Early stopping
