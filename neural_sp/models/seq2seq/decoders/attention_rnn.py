@@ -509,8 +509,7 @@ class RNNDecoder(DecoderBase):
         del mask
         del cv
         del ys_in_pad
-        del ys_out_pad
-        
+
         if self.discourse_aware == 'state_carry_over':
             self.dstate_prev[0] = torch.cat(self.dstate_prev[0], dim=1)
             if self.dec_type == 'lstm':
