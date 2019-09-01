@@ -410,9 +410,13 @@ def main():
                                     remove_old_checkpoints=not noam)
         else:
             start_time_eval = time.time()
-                # dev
-            metric_dev = eval_epoch([model], dev_set, recog_params, args,
-                                        optimizer.n_epochs + 1, logger)
+            # dev
+            if hvd.rank() == 0:
+                metric_dev = eval_epoch([model], dev_set, recog_params, args,
+                                            optimizer.n_epochs + 1, logger)
+            else:
+                metric_dev = eval_epoch([model], dev_set, recog_params, args,
+                                            optimizer.n_epochs + 1, None)
             optimizer.epoch(metric_dev)
             reporter.epoch(metric_dev)
 
@@ -470,7 +474,7 @@ def main():
     return save_path
 
 
-def eval_epoch(models, dataset, recog_params, args, epoch, logger):
+def eval_epoch(models, dataset, recog_params, args, epoch, logger=None):
     if args.metric == 'edit_distance':
         if args.unit in ['word', 'word_char']:
             metric = eval_word(models, dataset, recog_params, epoch=epoch)[0]
@@ -491,7 +495,8 @@ def eval_epoch(models, dataset, recog_params, args, epoch, logger):
         logger.info('PPL (%s): %.2f' % (dataset.set, metric))
     elif args.metric == 'loss':
         metric = eval_ppl(models, dataset, batch_size=args.batch_size)[1]
-        logger.info('Loss (%s): %.2f' % (dataset.set, metric))
+        if hvd.rank() == 0:
+            logger.info('Loss (%s): %.2f' % (dataset.set, metric))
     else:
         raise NotImplementedError(args.metric)
     return metric
