@@ -33,7 +33,7 @@ from neural_sp.bin.train_utils import set_save_path
 from neural_sp.datasets.asr import Dataset
 from neural_sp.evaluators.character import eval_char
 from neural_sp.evaluators.phone import eval_phone
-from neural_sp.evaluators.ppl import eval_ppl
+from neural_sp.evaluators.ppl import eval_ppl_parallel
 from neural_sp.evaluators.word import eval_word
 from neural_sp.evaluators.wordpiece import eval_wordpiece
 from neural_sp.models.data_parallel import CustomDataParallel
