@@ -474,13 +474,13 @@ class RNNDecoder(DecoderBase):
         self.score.reset()
         aw, aws = None, []
         lmout, lmstate = None, None
-
+        GPUtil.showUtilization()
         # Pre-computation of embedding
         ys_emb = self.embed(ys_in_pad)
 
         # Create the attention mask
         mask = make_pad_mask(elens, self.device_id).expand(bs, xmax)
-
+        GPUtil.showUtilization()
         logits = []
         for t in range(ys_in_pad.size(1)):
             is_sample = t > 0 and self._ss_prob > 0 and random.random() < self._ss_prob and self.adaptive_softmax is None
