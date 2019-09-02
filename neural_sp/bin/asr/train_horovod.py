@@ -475,7 +475,7 @@ def main():
 
 def eval_epoch(models, dataset, recog_params, args, epoch, logger=None):
     if args.metric == 'loss':
-        metric = eval_ppl(models, dataset, batch_size=args.batch_size)[1]
+        metric = eval_ppl_parallel(models, dataset, batch_size=args.batch_size)[1]
         if hvd.rank() == 0:
             logger.info('Loss (%s): %.2f' % (dataset.set, metric))
     else:

@@ -108,7 +108,7 @@ def eval_ppl(models, dataset, batch_size=1, bptt=None,
     return ppl, avg_loss
 
 
-def eval_ppl_paralle(models, dataset, batch_size=1, bptt=None,
+def eval_ppl_parallel(models, dataset, batch_size=1, bptt=None,
              n_caches=0, progressbar=False):
     """Evaluate a Seq2seq or (RNN/GatedConv)LM by perprexity and loss.
 
