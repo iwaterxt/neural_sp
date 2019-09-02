@@ -415,7 +415,7 @@ def main():
 
             metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1)
 
-            metric_dev = hvd.allreduce(np2tensor(metric_dev, hvd.local_rank()))
+            metric_dev = hvd.allreduce(np2tensor([[metric_dev]], hvd.local_rank()))
             loss_dev = metric_dev.item()
             optimizer.epoch(loss_dev)
             reporter.epoch(loss_dev)
