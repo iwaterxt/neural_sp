@@ -412,7 +412,7 @@ def main():
             start_time_eval = time.time()
             # dev
 
-            metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1, logger)
+            metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1)
 
             metric_dev = hvd.allreduce(metric_dev)
 
@@ -473,11 +473,9 @@ def main():
     return save_path
 
 
-def eval_epoch(models, dataset, recog_params, args, epoch, logger=None):
+def eval_epoch(models, dataset, recog_params, args, epoch):
     if args.metric == 'loss':
         metric = eval_ppl_parallel(models, dataset, batch_size=args.batch_size)[1]
-        if hvd.rank() == 0:
-            logger.info('Loss (%s): %.2f' % (dataset.set, metric))
     else:
         raise NotImplementedError(args.metric)
     return metric
