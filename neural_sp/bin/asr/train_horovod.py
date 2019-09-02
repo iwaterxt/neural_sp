@@ -417,8 +417,8 @@ def main():
 
             metric_dev = hvd.allreduce(np2tensor(np.array([metric_dev], dtype=float), hvd.local_rank()))
             loss_dev = metric_dev.item()
-
-            logger.info('Loss : %.2f %%' % (loss_dev))
+            if hvd.rank() == 0:
+                logger.info('Loss : %.2f %%' % (loss_dev))
             optimizer.epoch(loss_dev)
             reporter.epoch(loss_dev)
 
