@@ -411,12 +411,11 @@ def main():
         else:
             start_time_eval = time.time()
             # dev
-            if hvd.rank() == 0:
-                metric_dev = eval_epoch([model], dev_set, recog_params, args,
-                                            optimizer.n_epochs + 1, logger)
-            else:
-                metric_dev = eval_epoch([model], dev_set, recog_params, args,
-                                            optimizer.n_epochs + 1, None)
+
+            metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1, logger)
+
+            metric_dev = hvd.allreduce(metric_dev)
+
             optimizer.epoch(metric_dev)
             reporter.epoch(metric_dev)
 
@@ -475,25 +474,7 @@ def main():
 
 
 def eval_epoch(models, dataset, recog_params, args, epoch, logger=None):
-    if args.metric == 'edit_distance':
-        if args.unit in ['word', 'word_char']:
-            metric = eval_word(models, dataset, recog_params, epoch=epoch)[0]
-            logger.info('WER (%s): %.2f %%' % (dataset.set, metric))
-        elif args.unit == 'wp':
-            metric, cer = eval_wordpiece(models, dataset, recog_params, epoch=epoch)
-            logger.info('WER (%s): %.2f %%' % (dataset.set, metric))
-            logger.info('CER (%s): %.2f %%' % (dataset.set, cer))
-        elif 'char' in args.unit:
-            metric, cer = eval_char(models, dataset, recog_params, epoch=epoch)
-            logger.info('WER (%s): %.2f %%' % (dataset.set, metric))
-            logger.info('CER (%s): %.2f %%' % (dataset.set, cer))
-        elif 'phone' in args.unit:
-            metric = eval_phone(models, dataset, recog_params, epoch=epoch)
-            logger.info('PER (%s): %.2f %%' % (dataset.set, metric))
-    elif args.metric == 'ppl':
-        metric = eval_ppl(models, dataset, batch_size=args.batch_size)[0]
-        logger.info('PPL (%s): %.2f' % (dataset.set, metric))
-    elif args.metric == 'loss':
+    if args.metric == 'loss':
         metric = eval_ppl(models, dataset, batch_size=args.batch_size)[1]
         if hvd.rank() == 0:
             logger.info('Loss (%s): %.2f' % (dataset.set, metric))

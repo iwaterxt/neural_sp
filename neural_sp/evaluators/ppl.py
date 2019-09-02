@@ -106,3 +106,61 @@ def eval_ppl(models, dataset, batch_size=1, bptt=None,
     logger.info('Loss (%s): %.2f %%' % (dataset.set, avg_loss))
 
     return ppl, avg_loss
+
+
+def eval_ppl_paralle(models, dataset, batch_size=1, bptt=None,
+             n_caches=0, progressbar=False):
+    """Evaluate a Seq2seq or (RNN/GatedConv)LM by perprexity and loss.
+
+    Args:
+        models (list): models to evaluate
+        dataset (Dataset): evaluation dataset
+        batch_size (int): batch size
+        bptt (int): BPTT length
+        n_caches (int):
+        progressbar (bool): if True, visualize the progressbar
+    Returns:
+        ppl (float): Average perplexity
+        loss (float): Average loss
+
+    """
+
+    is_lm = False
+    skip_thought = False
+    if isinstance(models[0], RNNLM) or isinstance(models[0], GatedConvLM) or isinstance(models[0], TransformerLM):
+        is_lm = True
+    elif 'skip' in models[0].enc_type:
+        skip_thought = True
+
+    total_loss = 0
+    n_tokens = 0
+    hidden = None  # for RNNLM
+    if progressbar:
+        pbar = tqdm(total=len(dataset))
+
+    for _, batch in enumerate(dataset):
+        bs = len(batch['ys'])
+        if skip_thought:
+            loss, _ = models[0](batch['ys'],
+                                ys_prev=batch['ys_prev'],
+                                ys_next=batch['ys_next'],
+                                is_eval=True)
+        else:
+            loss, _ = models[0](batch, task='all', is_eval=True)
+        total_loss += loss.item() * bs
+        n_tokens += sum([len(y) for y in batch['ys']])
+        # NOTE: loss is divided by batch size in the ASR model
+
+        if progressbar:
+            pbar.update(bs)
+
+    if progressbar:
+        pbar.close()
+
+    avg_loss = total_loss / n_tokens
+    ppl = np.exp(avg_loss)
+    if hvd.rank() == 0:
+        logger.info('PPL (%s): %.2f %%' % (dataset.set, ppl))
+        logger.info('Loss (%s): %.2f %%' % (dataset.set, avg_loss))
+
+    return ppl, avg_loss
