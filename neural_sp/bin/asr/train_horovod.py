@@ -46,6 +46,7 @@ from neural_sp.trainers.reporter import Reporter
 from neural_sp.utils import mkdir_join
 from neural_sp.utils import host_ip
 from neural_sp.models.torch_utils import tensor2np
+from neural_sp.models.torch_utils import np2tensor
 from neural_sp.bin.seqdataloader import SeqDataloader
 
 torch.manual_seed(1)
@@ -414,10 +415,10 @@ def main():
 
             metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1)
 
-            metric_dev = hvd.allreduce(metric_dev)
-
-            optimizer.epoch(metric_dev)
-            reporter.epoch(metric_dev)
+            metric_dev = hvd.allreduce(np2tensor(metric_dev, hvd.local_rank()))
+            loss_dev = metric_dev.item()
+            optimizer.epoch(loss_dev)
+            reporter.epoch(loss_dev)
 
             if optimizer.is_best and hvd.rank() == 0:
                 # Save the model
