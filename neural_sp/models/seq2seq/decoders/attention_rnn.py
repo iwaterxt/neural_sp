@@ -38,6 +38,7 @@ from neural_sp.models.torch_utils import np2tensor
 from neural_sp.models.torch_utils import pad_list
 from neural_sp.models.torch_utils import tensor2np
 from neural_sp.utils import mkdir_join
+import GPUtil
 
 import matplotlib
 matplotlib.use('Agg')
@@ -401,6 +402,7 @@ class RNNDecoder(DecoderBase):
 
         # XE loss
         if self.global_weight - self.ctc_weight > 0 and (task == 'all' or ('ctc' not in task)):
+            GPUtil.showUtilization()
             loss_att, acc_att, ppl_att = self.forward_att(eouts, elens, ys, ys_hist,
                                                           teacher_logits=teacher_logits)
             observation['loss_att'] = loss_att.item()
@@ -527,6 +529,7 @@ class RNNDecoder(DecoderBase):
         if self.adaptive_softmax is None:
             if self.lsm_prob > 0 and self.training:
                 # Label smoothing
+                GPUtil.showUtilization()
                 loss = cross_entropy_lsm(logits.view((-1, logits.size(2))), ys_out_pad.view(-1),
                                          self.lsm_prob, self.pad)
             else:

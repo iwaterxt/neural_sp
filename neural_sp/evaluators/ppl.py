@@ -159,8 +159,5 @@ def eval_ppl_parallel(models, dataset, batch_size=1, bptt=None,
 
     avg_loss = total_loss / n_tokens
     ppl = np.exp(avg_loss)
-    if hvd.rank() == 0:
-        logger.info('PPL : %.2f %%' % (ppl))
-        logger.info('Loss : %.2f %%' % (avg_loss))
 
     return ppl, avg_loss
