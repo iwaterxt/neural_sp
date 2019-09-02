@@ -13,7 +13,7 @@ from __future__ import print_function
 import logging
 import numpy as np
 from tqdm import tqdm
-
+import horovod.torch as hvd
 from neural_sp.models.lm.gated_convlm import GatedConvLM
 from neural_sp.models.lm.rnnlm import RNNLM
 from neural_sp.models.lm.transformerlm import TransformerLM
