@@ -70,11 +70,11 @@ class ChunkDataloader(DataLoader):
 class SeqDataloader(DataLoader):
     
     def __init__(self, dataset, batch_size, num_workers=0, distributed=False, 
-                 num_staks=1, num_splices=1, num_skips=1, flip=False, 
+                 num_stacks=1, num_splices=1, num_skips=1, flip=False, 
                  device_id=-1, test_only=False, timeout=1000):
         
         self.test_only = test_only
-        self.num_staks = num_staks
+        self.num_stacks = num_stacks
         self.num_splices = num_splices
         self.num_skips = num_skips
         self.flip = flip
