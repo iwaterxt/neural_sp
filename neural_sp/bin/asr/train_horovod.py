@@ -254,11 +254,11 @@ def main():
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
             logger.info('========== Convert to SGD ==========')
-        #broadcast
-        optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+            #broadcast
+            optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
 
-        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+            hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+            hvd.broadcast_optimizer_state(optimizer, root_rank=0)
 
     else:
         # Save the conf file as a yaml file
@@ -392,7 +392,7 @@ def main():
 
                 if hvd.rank() == 0:
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                                (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
+                                (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size/hvd.size(),
                                 loss_train, loss_dev,
                                 optimizer.lr, len(batch_train['utt_ids']),
                                 xlen, ylen, duration_step / 60))
