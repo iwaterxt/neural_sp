@@ -161,7 +161,7 @@ def main():
                                  num_stacks=args.n_stacks,
                                  num_splices=args.n_splices,
                                  num_skips=args.n_skips,
-                                 pin_memory=True
+                                 pin_memory=False
                                 )
     val_loader = SeqDataloader(dev_set, 
                                batch_size=args.batch_size,
@@ -170,7 +170,7 @@ def main():
                                num_stacks=args.n_stacks,
                                num_splices=args.n_splices,
                                num_skips=args.n_skips,
-                               pin_memory=True
+                               pin_memory=False
                               )    
 
     # Load a LM conf file for LM fusion & LM initialization
