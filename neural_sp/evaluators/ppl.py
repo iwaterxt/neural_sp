@@ -153,7 +153,7 @@ def eval_ppl_parallel(models, dataloader, epochs, batch_size=1, bptt=None,
             total_loss += loss.item() * bs
             n_tokens += sum([len(y) for y in batch['ys']])
             # NOTE: loss is divided by batch size in the ASR model
-            pbar.update(bs)
+            pbar_epoch.update(bs)
 
     avg_loss = total_loss / n_tokens
     ppl = np.exp(avg_loss)
