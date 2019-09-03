@@ -108,7 +108,7 @@ def eval_ppl(models, dataset, batch_size=1, bptt=None,
     return ppl, avg_loss
 
 
-def eval_ppl_parallel(models, dataset, batch_size=1, bptt=None,
+def eval_ppl_parallel(models, dataloader, epochs, batch_size=1, bptt=None,
              n_caches=0, progressbar=False):
     """Evaluate a Seq2seq or (RNN/GatedConv)LM by perprexity and loss.
 
@@ -135,27 +135,25 @@ def eval_ppl_parallel(models, dataset, batch_size=1, bptt=None,
     total_loss = 0
     n_tokens = 0
     hidden = None  # for RNNLM
-    if progressbar:
-        pbar = tqdm(total=len(dataset))
+    data_size = len(dataloader.dataset)
+    verbose = 1 if hvd.rank() == 0 else 0
+    with tqdm(total=data_size/hvd.size(),
+              desc='Eval Epoch     #{}'.format(epochs),
+              disable=not verbose) as pbar_epoch:
 
-    for _, batch in enumerate(dataset):
-        bs = len(batch['ys'])
-        if skip_thought:
-            loss, _ = models[0](batch['ys'],
-                                ys_prev=batch['ys_prev'],
-                                ys_next=batch['ys_next'],
-                                is_eval=True)
-        else:
-            loss, _ = models[0](batch, task='all', is_eval=True)
-        total_loss += loss.item() * bs
-        n_tokens += sum([len(y) for y in batch['ys']])
-        # NOTE: loss is divided by batch size in the ASR model
-
-        if progressbar:
+        for _, batch in enumerate(dataloader):
+            bs = len(batch['ys'])
+            if skip_thought:
+                loss, _ = models[0](batch['ys'],
+                                    ys_prev=batch['ys_prev'],
+                                    ys_next=batch['ys_next'],
+                                    is_eval=True)
+            else:
+                loss, _ = models[0](batch, task='all', is_eval=True)
+            total_loss += loss.item() * bs
+            n_tokens += sum([len(y) for y in batch['ys']])
+            # NOTE: loss is divided by batch size in the ASR model
             pbar.update(bs)
-
-    if progressbar:
-        pbar.close()
 
     avg_loss = total_loss / n_tokens
     ppl = np.exp(avg_loss)
