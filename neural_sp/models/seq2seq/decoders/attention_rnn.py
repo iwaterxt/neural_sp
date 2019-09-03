@@ -501,12 +501,15 @@ class RNNDecoder(DecoderBase):
             if self.discourse_aware == 'state_carry_over':
                 if self.dstate_prev is None:
                     self.dstate_prev = ([None] * bs, [None] * bs)
-                print(ylens.tolist())
                 if t in ylens.tolist():
                     for b in ylens.tolist().index(t):
                         self.dstate_prev[0][b] = dstates['dstate']['hxs'][b:b + 1].detach()
                         if self.dec_type == 'lstm':
                             self.dstate_prev[1][b] = dstates['dstate']['cxs'][b:b + 1].detach()
+        del ys_emb
+        del mask
+        del ys_in_pad
+
 
         if self.discourse_aware == 'state_carry_over':
             self.dstate_prev[0] = torch.cat(self.dstate_prev[0], dim=1)
@@ -524,7 +527,8 @@ class RNNDecoder(DecoderBase):
         # for attention plot
         if not self.training:
             self.aws = tensor2np(torch.cat(aws, dim=2))  # `[B, n_heads, L, T]`
-
+        del t for t in aws
+        torch.cuda.empy_cache()
         # Compute XE sequence loss
         if self.adaptive_softmax is None:
             if self.lsm_prob > 0 and self.training:

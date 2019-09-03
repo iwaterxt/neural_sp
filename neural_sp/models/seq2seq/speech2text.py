@@ -536,7 +536,7 @@ class Speech2Text(ModelBase):
             for sub in ['sub1', 'sub2']:
                 enc_outs['ys_' + sub]['xs'] = enc_outs['ys']['xs'].clone()
                 enc_outs['ys_' + sub]['xlens'] = enc_outs['ys']['xlens'][:]
-
+        del xs 
         return enc_outs
 
     def get_ctc_probs(self, xs, task='ys', temperature=1, topk=None):
