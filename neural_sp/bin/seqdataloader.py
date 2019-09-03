@@ -137,6 +137,7 @@ class SeqDataloader(DataLoader):
         if self.flip:
             xs = [torch.from_numpy(np.flip(x, axis=0).copy()).float().cuda(self.device_id) for x in xs]
         else:
+            print (self.device_id)
             xs = [np2tensor(x, self.device_id).float() for x in xs]
         xs = pad_list(xs, 0.0)
 
