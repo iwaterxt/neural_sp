@@ -70,16 +70,13 @@ class ChunkDataloader(DataLoader):
 class SeqDataloader(DataLoader):
     
     def __init__(self, dataset, batch_size, num_workers=0, distributed=False, 
-                 num_stacks=1, num_splices=1, num_skips=1, flip=False, 
-                 device_id=-1, test_only=False, timeout=1000):
+                 num_stacks=1, num_splices=1, num_skips=1, pin_memory=False, test_only=False, timeout=1000):
         
         self.test_only = test_only
         self.num_stacks = num_stacks
         self.num_splices = num_splices
         self.num_skips = num_skips
-        self.flip = flip
-        self.device_id = device_id
- 
+        self.pin_memory = pin_memory
         # now decide on a sampler
         #base_sampler = torch.utils.data.SequentialSampler(self.dataset)
         base_sampler = torch.utils.data.RandomSampler(dataset)
@@ -96,7 +93,8 @@ class SeqDataloader(DataLoader):
                                            batch_size=batch_size, 
                                            sampler=sampler, 
                                            num_workers=num_workers, 
-                                           collate_fn=self.collate_fn, 
+                                           collate_fn=self.collate_fn,
+                                           pin_memory=self.pin_memory,
                                            drop_last=False,
                                            timeout=timeout)
    
@@ -131,15 +129,7 @@ class SeqDataloader(DataLoader):
         # Splicing
         if self.num_splices > 1:
             xs = [splice(x, self.num_splices, self.num_stacks) for x in xs]
-        xlens = torch.IntTensor([len(x) for x in xs])
-
-        # Flip acoustic features in the reverse order
-        if self.flip:
-            xs = [torch.from_numpy(np.flip(x, axis=0).copy()).float().cuda(self.device_id) for x in xs]
-        else:
-            print (self.device_id)
-            xs = [np2tensor(x, self.device_id).float() for x in xs]
-        xs = pad_list(xs, 0.0)
+        xlens = torch.IntTensor(xlens)
 
         data = {
             'xs': xs,

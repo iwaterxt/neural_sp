@@ -501,16 +501,9 @@ class Speech2Text(ModelBase):
             enc_outs (dict):
 
         """
-        '''     
+            
         if self.input_type == 'speech':
-            # Frame stacking
-            if self.n_stacks > 1:
-                xs = [stack_frame(x, self.n_stacks, self.n_skips)for x in xs]
 
-            # Splicing
-            if self.n_splices > 1:
-                xs = [splice(x, self.n_splices, self.n_stacks) for x in xs]
-            xlens = torch.IntTensor([len(x) for x in xs])
 
             # Flip acoustic features in the reverse order
             if flip:
@@ -536,7 +529,7 @@ class Speech2Text(ModelBase):
             xs = [np2tensor(np.fromiter(x, dtype=np.int64), self.device_id) for x in xs]
             xs = pad_list(xs, self.pad)
             xs = self.embed(xs)
-        '''
+        
         # encoder
         enc_outs = self.enc(xs, xlens, task.split('.')[0])
         if self.main_weight < 1 and self.enc_type in ['conv', 'tds', 'gated_conv', 'transformer', 'conv_transformer']:
