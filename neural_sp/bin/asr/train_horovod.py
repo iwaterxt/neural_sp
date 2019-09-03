@@ -158,7 +158,7 @@ def main():
                                  batch_size=args.batch_size,
                                  num_workers = 2,
                                  distributed=True,
-                                 num_staks=args.n_stacks,
+                                 num_stacks=args.n_stacks,
                                  num_splices=args.n_splices,
                                  num_skips=args.n_skips,
                                  device_id=hvd.local_rank()
@@ -167,7 +167,7 @@ def main():
                                batch_size=args.batch_size,
                                num_workers = 2,
                                distributed=True,
-                               num_staks=args.n_stacks,
+                               num_stacks=args.n_stacks,
                                num_splices=args.n_splices,
                                num_skips=args.n_skips,
                                device_id=hvd.local_rank()
