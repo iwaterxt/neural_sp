@@ -325,7 +325,7 @@ class Dataset(data.Dataset):
 
         batch = self.make_batch([index])
 
-        self.df_indices.remove(index)
+        #self.df_indices.remove(index)
 
         return batch
 

@@ -221,124 +221,126 @@ def main():
     start_time_train = time.time()
     start_time_epoch = time.time()
     start_time_step = time.time()
-    pbar_epoch = tqdm(total=len(train_set))
+    data_size = len(train_set)
     accum_n_tokens = 0
     while True:
-        # Compute loss in the training set
-        ys_train, is_new_epoch = train_set.next()
-        accum_n_tokens += sum([len(y) for y in ys_train])
-        optimizer.zero_grad()
-        loss, hidden, reporter = model(ys_train, hidden, reporter)
-        loss.backward()
-        loss.detach()  # Trancate the graph
-        if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
-            if args.clip_grad_norm > 0:
-                total_norm = torch.nn.utils.clip_grad_norm_(
-                    model.module.parameters(), args.clip_grad_norm)
-                reporter.add_tensorboard_scalar('total_norm', total_norm)
-            optimizer.step()
-            optimizer.zero_grad()
-            accum_n_tokens = 0
-        loss_train = loss.item()
-        del loss
-        hidden = model.module.repackage_state(hidden)
-        reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
-        # NOTE: loss/acc/ppl are already added in the model
-        reporter.step()
+        model.train()
+        with tqdm(total=data_size/hvd.size(),
+                desc='Train Epoch     #{}'.format(optimizer.n_epochs + 1),
+                disable=not verbose) as pbar_epoch:
+            # Compute loss in the training set
+            for _, ys_train in enumerate(train_loader):
+                accum_n_tokens += sum([len(y) for y in ys_train])
+                optimizer.zero_grad()
+                loss, hidden, reporter = model(ys_train, hidden, reporter)
+                loss.backward()
+                loss.detach()  # Trancate the graph
+                if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
+                    if args.clip_grad_norm > 0:
+                        total_norm = torch.nn.utils.clip_grad_norm_(
+                            model.module.parameters(), args.clip_grad_norm)
+                        reporter.add_tensorboard_scalar('total_norm', total_norm)
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    accum_n_tokens = 0
+                loss_train = loss.item()
+                del loss
+                hidden = model.module.repackage_state(hidden)
+                reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
+                # NOTE: loss/acc/ppl are already added in the model
+                reporter.step()
 
-        if optimizer.n_steps % args.print_step == 0:
-            # Compute loss in the dev set
-            ys_dev = dev_set.next()[0]
-            loss, _, reporter = model(ys_dev, None, reporter, is_eval=True)
-            loss_dev = loss.item()
-            del loss
-            reporter.step(is_eval=True)
+                if optimizer.n_steps % args.print_step == 0:
+                    # Compute loss in the dev set
+                    ys_dev = dev_set.next()[0]
+                    loss, _, reporter = model(ys_dev, None, reporter, is_eval=True)
+                    loss_dev = loss.item()
+                    del loss
+                    reporter.step(is_eval=True)
 
-            duration_step = time.time() - start_time_step
-            logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
-                        (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
-                         loss_train, loss_dev,
-                         np.exp(loss_train), np.exp(loss_dev),
-                         optimizer.lr, ys_train.shape[0], duration_step / 60))
-            start_time_step = time.time()
-        pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
+                    duration_step = time.time() - start_time_step
+                    logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
+                                (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
+                                loss_train, loss_dev,
+                                np.exp(loss_train), np.exp(loss_dev),
+                                optimizer.lr, ys_train.shape[0], duration_step / 60))
+                    start_time_step = time.time()
+                pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
 
-        # Save fugures of loss and accuracy
-        if optimizer.n_steps % (args.print_step * 10) == 0:
-            reporter.snapshot()
-            if args.lm_type == 'transformer':
-                model.module.plot_attention()
+            # Save fugures of loss and accuracy
+            if optimizer.n_steps % (args.print_step * 10) == 0:
+                reporter.snapshot()
+                if args.lm_type == 'transformer':
+                    model.module.plot_attention()
 
-        # Save checkpoint and evaluate model per epoch
-        if is_new_epoch:
-            duration_epoch = time.time() - start_time_epoch
-            logger.info('========== EPOCH:%d (%.2f min) ==========' %
-                        (optimizer.n_epochs + 1, duration_epoch / 60))
+            # Save checkpoint and evaluate model per epoch
+            if is_new_epoch:
+                duration_epoch = time.time() - start_time_epoch
+                logger.info('========== EPOCH:%d (%.2f min) ==========' %
+                            (optimizer.n_epochs + 1, duration_epoch / 60))
 
-            if optimizer.n_epochs + 1 < args.eval_start_epoch:
-                optimizer.epoch()
-                reporter.epoch()
+                if optimizer.n_epochs + 1 < args.eval_start_epoch:
+                    optimizer.epoch()
+                    reporter.epoch()
 
-                # Save the model
-                save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
-                                remove_old_checkpoints=args.lm_type != 'transformer')
-            else:
-                start_time_eval = time.time()
-                # dev
-                ppl_dev, _ = eval_ppl([model.module], dev_set,
-                                      batch_size=1, bptt=args.bptt)
-                logger.info('PPL (%s): %.2f' % (dev_set.set, ppl_dev))
-                optimizer.epoch(ppl_dev)
-                reporter.epoch(ppl_dev, name='perplexity')
-
-                if optimizer.is_best:
                     # Save the model
                     save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=args.lm_type != 'transformer')
+                else:
+                    start_time_eval = time.time()
+                    # dev
+                    ppl_dev, _ = eval_ppl([model.module], dev_set,
+                                        batch_size=1, bptt=args.bptt)
+                    logger.info('PPL (%s): %.2f' % (dev_set.set, ppl_dev))
+                    optimizer.epoch(ppl_dev)
+                    reporter.epoch(ppl_dev, name='perplexity')
 
-                    # test
-                    ppl_test_avg = 0.
-                    for eval_set in eval_sets:
-                        ppl_test, _ = eval_ppl([model.module], eval_set,
-                                               batch_size=1, bptt=args.bptt)
-                        logger.info('PPL (%s): %.2f' % (eval_set.set, ppl_test))
-                        ppl_test_avg += ppl_test
-                    if len(eval_sets) > 0:
-                        logger.info('PPL (avg.): %.2f' % (ppl_test_avg / len(eval_sets)))
+                    if optimizer.is_best:
+                        # Save the model
+                        save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                                        remove_old_checkpoints=args.lm_type != 'transformer')
 
-                duration_eval = time.time() - start_time_eval
-                logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
+                        # test
+                        ppl_test_avg = 0.
+                        for eval_set in eval_sets:
+                            ppl_test, _ = eval_ppl([model.module], eval_set,
+                                                batch_size=1, bptt=args.bptt)
+                            logger.info('PPL (%s): %.2f' % (eval_set.set, ppl_test))
+                            ppl_test_avg += ppl_test
+                        if len(eval_sets) > 0:
+                            logger.info('PPL (avg.): %.2f' % (ppl_test_avg / len(eval_sets)))
 
-                # Early stopping
-                if optimizer.is_early_stop:
+                    duration_eval = time.time() - start_time_eval
+                    logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
+
+                    # Early stopping
+                    if optimizer.is_early_stop:
+                        break
+
+                    # Convert to fine-tuning stage
+                    if optimizer.n_epochs == args.convert_to_sgd_epoch:
+                        n_epochs = optimizer.n_epochs
+                        n_steps = optimizer.n_steps
+                        optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
+                        optimizer = LRScheduler(optimizer, args.lr,
+                                                decay_type='always',
+                                                decay_start_epoch=0,
+                                                decay_rate=0.5)
+                        optimizer._epoch = n_epochs
+                        optimizer._step = n_steps
+                        logger.info('========== Convert to SGD ==========')
+
+
+                if optimizer.n_epochs == args.n_epochs:
                     break
 
-                # Convert to fine-tuning stage
-                if optimizer.n_epochs == args.convert_to_sgd_epoch:
-                    n_epochs = optimizer.n_epochs
-                    n_steps = optimizer.n_steps
-                    optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
-                    optimizer = LRScheduler(optimizer, args.lr,
-                                            decay_type='always',
-                                            decay_start_epoch=0,
-                                            decay_rate=0.5)
-                    optimizer._epoch = n_epochs
-                    optimizer._step = n_steps
-                    logger.info('========== Convert to SGD ==========')
-
-            pbar_epoch = tqdm(total=len(train_set))
-
-            if optimizer.n_epochs == args.n_epochs:
-                break
-
-            start_time_step = time.time()
-            start_time_epoch = time.time()
+                start_time_step = time.time()
+                start_time_epoch = time.time()
 
     duration_train = time.time() - start_time_train
     logger.info('Total time: %.2f hour' % (duration_train / 3600))
 
     reporter.tf_writer.close()
-    pbar_epoch.close()
 
     return save_path
 
