@@ -527,7 +527,8 @@ class RNNDecoder(DecoderBase):
         # for attention plot
         if not self.training:
             self.aws = tensor2np(torch.cat(aws, dim=2))  # `[B, n_heads, L, T]`
-        del t for t in aws
+        for t in aws:
+            del t 
         torch.cuda.empy_cache()
         # Compute XE sequence loss
         if self.adaptive_softmax is None:
