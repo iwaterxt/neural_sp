@@ -129,7 +129,6 @@ class SeqDataloader(DataLoader):
         # Splicing
         if self.num_splices > 1:
             xs = [splice(x, self.num_splices, self.num_stacks) for x in xs]
-        xlens = torch.IntTensor(xlens)
 
         data = {
             'xs': xs,

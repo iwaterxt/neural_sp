@@ -504,7 +504,7 @@ class Speech2Text(ModelBase):
             
         if self.input_type == 'speech':
 
-
+            xlens = torch.IntTensor([len(x) for x in xs])
             # Flip acoustic features in the reverse order
             if flip:
                 xs = [torch.from_numpy(np.flip(x, axis=0).copy()).float().cuda(self.device_id) for x in xs]
