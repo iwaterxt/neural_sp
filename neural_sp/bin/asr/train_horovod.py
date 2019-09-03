@@ -327,9 +327,10 @@ def main():
     accum_n_tokens = 0
 
     verbose = 1 if hvd.rank() == 0 else 0
+    data_size = len(train_set)
     while True:
       model.train()
-      with tqdm(total=len(train_set)/hvd.size(),
+      with tqdm(total=data_size/hvd.size(),
               desc='Train Epoch     #{}'.format(optimizer.n_epochs + 1),
               disable=not verbose) as pbar_epoch:
         # Compute loss in the training set
@@ -391,7 +392,7 @@ def main():
 
                 if hvd.rank() == 0:
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                                (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
+                                (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
                                 loss_train, loss_dev,
                                 optimizer.lr, len(batch_train['utt_ids']),
                                 xlen, ylen, duration_step / 60))
