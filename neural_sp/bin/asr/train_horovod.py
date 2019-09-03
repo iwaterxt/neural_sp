@@ -157,12 +157,20 @@ def main():
     train_loader = SeqDataloader(train_set, 
                                  batch_size=args.batch_size,
                                  num_workers = 2,
-                                 distributed=True
+                                 distributed=True,
+                                 num_staks=args.n_stacks,
+                                 num_splices=args.n_splices,
+                                 num_skips=args.n_skips,
+                                 device_id=hvd.local_rank()
                                 )
     val_loader = SeqDataloader(dev_set, 
                                batch_size=args.batch_size,
                                num_workers = 2,
-                               distributed=True
+                               distributed=True,
+                               num_staks=args.n_stacks,
+                               num_splices=args.n_splices,
+                               num_skips=args.n_skips,
+                               device_id=hvd.local_rank()
                               )    
 
     # Load a LM conf file for LM fusion & LM initialization
@@ -416,7 +424,7 @@ def main():
             metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1)
 
             metric_dev = hvd.allreduce(np2tensor(np.array([metric_dev], dtype=float), hvd.local_rank()))
-            loss_dev = metric_dev.item()
+            loss_dev = metric_dev.item()/hvd.size()
             if hvd.rank() == 0:
                 logger.info('Loss : %.2f %%' % (loss_dev))
             optimizer.epoch(loss_dev)

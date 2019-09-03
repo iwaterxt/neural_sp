@@ -501,7 +501,7 @@ class Speech2Text(ModelBase):
             enc_outs (dict):
 
         """
-        
+        '''     
         if self.input_type == 'speech':
             # Frame stacking
             if self.n_stacks > 1:
@@ -536,7 +536,7 @@ class Speech2Text(ModelBase):
             xs = [np2tensor(np.fromiter(x, dtype=np.int64), self.device_id) for x in xs]
             xs = pad_list(xs, self.pad)
             xs = self.embed(xs)
-        
+        '''
         # encoder
         enc_outs = self.enc(xs, xlens, task.split('.')[0])
         if self.main_weight < 1 and self.enc_type in ['conv', 'tds', 'gated_conv', 'transformer', 'conv_transformer']:

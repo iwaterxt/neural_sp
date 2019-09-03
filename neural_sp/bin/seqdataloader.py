@@ -26,9 +26,12 @@ SOFTWARE.
 import numpy as np
 import operator
 import torch
-
+import horovod.torch as hvd
 from torch.utils.data import Dataset, DataLoader
-
+from neural_sp.models.torch_utils import np2tensor
+from neural_sp.models.torch_utils import pad_list
+from neural_sp.models.seq2seq.frontends.splicing import splice
+from neural_sp.models.seq2seq.frontends.frame_stacking import stack_frame
 from torch.utils.data.distributed import DistributedSampler
 
 class ChunkDataloader(DataLoader):
@@ -66,9 +69,16 @@ class ChunkDataloader(DataLoader):
       
 class SeqDataloader(DataLoader):
     
-    def __init__(self, dataset, batch_size, num_workers=0, distributed=False, test_only=False, timeout=1000):
+    def __init__(self, dataset, batch_size, num_workers=0, distributed=False, 
+                 num_staks=1, num_splices=1, num_skips=1, flip=False, 
+                 device_id=-1, test_only=False, timeout=1000):
         
         self.test_only = test_only
+        self.num_staks = num_staks
+        self.num_splices = num_splices
+        self.num_skips = num_skips
+        self.flip = flip
+        self.device_id = device_id
  
         # now decide on a sampler
         #base_sampler = torch.utils.data.SequentialSampler(self.dataset)
@@ -81,7 +91,6 @@ class SeqDataloader(DataLoader):
                                            num_workers=num_workers,
                                            collate_fn=self.collate_fn)
         else:
-            import horovod.torch as hvd
             sampler = DistributedSampler(dataset, num_replicas=hvd.size(), rank=hvd.rank())
             super(SeqDataloader, self).__init__(dataset,
                                            batch_size=batch_size, 
@@ -115,6 +124,21 @@ class SeqDataloader(DataLoader):
             speakers.append(item['speakers'][0])
             sessions.append(item['sessions'][0])
             text.append(item['text'])
+
+        if self.num_stacks > 1:
+            xs = [stack_frame(x, self.num_stacks, self.num_skips)for x in xs]
+
+        # Splicing
+        if self.num_splices > 1:
+            xs = [splice(x, self.num_splices, self.num_stacks) for x in xs]
+        xlens = torch.IntTensor([len(x) for x in xs])
+
+        # Flip acoustic features in the reverse order
+        if self.flip:
+            xs = [torch.from_numpy(np.flip(x, axis=0).copy()).float().cuda(self.device_id) for x in xs]
+        else:
+            xs = [np2tensor(x, self.device_id).float() for x in xs]
+        xs = pad_list(xs, 0.0)
 
         data = {
             'xs': xs,
