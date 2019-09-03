@@ -402,7 +402,6 @@ class RNNDecoder(DecoderBase):
 
         # XE loss
         if self.global_weight - self.ctc_weight > 0 and (task == 'all' or ('ctc' not in task)):
-            GPUtil.showUtilization()
             loss_att, acc_att, ppl_att = self.forward_att(eouts, elens, ys, ys_hist,
                                                           teacher_logits=teacher_logits)
             observation['loss_att'] = loss_att.item()
@@ -474,13 +473,11 @@ class RNNDecoder(DecoderBase):
         self.score.reset()
         aw, aws = None, []
         lmout, lmstate = None, None
-        GPUtil.showUtilization()
         # Pre-computation of embedding
         ys_emb = self.embed(ys_in_pad)
 
         # Create the attention mask
         mask = make_pad_mask(elens, self.device_id).expand(bs, xmax)
-        GPUtil.showUtilization()
         logits = []
         for t in range(ys_in_pad.size(1)):
             is_sample = t > 0 and self._ss_prob > 0 and random.random() < self._ss_prob and self.adaptive_softmax is None
@@ -509,6 +506,10 @@ class RNNDecoder(DecoderBase):
         del ys_emb
         del mask
         del ys_in_pad
+        del cv
+        del lmout
+        del lmstate
+        del dstates
 
 
         if self.discourse_aware == 'state_carry_over':
@@ -534,7 +535,6 @@ class RNNDecoder(DecoderBase):
         if self.adaptive_softmax is None:
             if self.lsm_prob > 0 and self.training:
                 # Label smoothing
-                GPUtil.showUtilization()
                 loss = cross_entropy_lsm(logits.view((-1, logits.size(2))), ys_out_pad.view(-1),
                                          self.lsm_prob, self.pad)
             else:
