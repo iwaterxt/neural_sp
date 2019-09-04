@@ -210,10 +210,16 @@ def main():
                                 noam=args.lm_type == 'transformer')
 
     # Set process name
-    logger.info('PID: %s' % os.getpid())
-    logger.info('USERNAME: %s' % os.uname()[1])
+    # Set logger
+    if hvd.rank() == 0:
+        logger = set_logger(os.path.join(save_path, 'train.log'),
+                            key='training', stdout=args.stdout)
+        # Set process name
+        logger.info('PID: %s' % os.getpid())
+        logger.info('USERNAME: %s' % os.uname()[1])
+        logger.info('NUMBER_DEVICES: %s' % hvd.size())
+    
     setproctitle(args.job_name if args.job_name else dir_name)
-
     # Set reporter
     reporter = Reporter(save_path)
 
@@ -238,14 +244,14 @@ def main():
                 if args.accum_grad_n_tokens == 0 or accum_n_tokens >= args.accum_grad_n_tokens:
                     if args.clip_grad_norm > 0:
                         total_norm = torch.nn.utils.clip_grad_norm_(
-                            model.module.parameters(), args.clip_grad_norm)
+                            model.parameters(), args.clip_grad_norm)
                         reporter.add_tensorboard_scalar('total_norm', total_norm)
                     optimizer.step()
                     optimizer.zero_grad()
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-                hidden = model.module.repackage_state(hidden)
+                hidden = model.repackage_state(hidden)
                 reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
                 # NOTE: loss/acc/ppl are already added in the model
                 reporter.step()
@@ -260,7 +266,7 @@ def main():
 
                     duration_step = time.time() - start_time_step
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
-                                (optimizer.n_steps, optimizer.n_epochs + train_set.epoch_detail,
+                                (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
                                 loss_train, loss_dev,
                                 np.exp(loss_train), np.exp(loss_dev),
                                 optimizer.lr, ys_train.shape[0], duration_step / 60))
@@ -271,65 +277,68 @@ def main():
             if optimizer.n_steps % (args.print_step * 10) == 0:
                 reporter.snapshot()
                 if args.lm_type == 'transformer':
-                    model.module.plot_attention()
+                    model.plot_attention()
 
             # Save checkpoint and evaluate model per epoch
-            if is_new_epoch:
-                duration_epoch = time.time() - start_time_epoch
-                logger.info('========== EPOCH:%d (%.2f min) ==========' %
-                            (optimizer.n_epochs + 1, duration_epoch / 60))
+            duration_epoch = time.time() - start_time_epoch
+            if hvd.rank() == 0:
+                logger.info('========== EPOCH:%d (%.2f min) ==========' %(optimizer.n_epochs + 1, duration_epoch / 60))
 
-                if optimizer.n_epochs + 1 < args.eval_start_epoch:
-                    optimizer.epoch()
-                    reporter.epoch()
+            if optimizer.n_epochs + 1 < args.eval_start_epoch:
+                optimizer.epoch()
+                reporter.epoch()
 
+                # Save the model
+                if hvd.rank() == 0:
+                    save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                                        remove_old_checkpoints=args.lm_type != 'transformer')
+            else:
+                start_time_eval = time.time()
+                # dev
+                ppl_dev, _ = eval_ppl([model], val_loader, batch_size=1, bptt=args.bptt)
+                ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
+
+                if hvd.rank() == 0:
+                    logger.info('PPL : %.2f' %  ppl_dev)
+
+                optimizer.epoch(ppl_dev)
+                reporter.epoch(ppl_dev, name='perplexity')
+
+                if optimizer.is_best and hvd.rank() == 0:
                     # Save the model
                     save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=args.lm_type != 'transformer')
-                else:
-                    start_time_eval = time.time()
-                    # dev
-                    ppl_dev, _ = eval_ppl([model.module], dev_set,
-                                        batch_size=1, bptt=args.bptt)
-                    logger.info('PPL (%s): %.2f' % (dev_set.set, ppl_dev))
-                    optimizer.epoch(ppl_dev)
-                    reporter.epoch(ppl_dev, name='perplexity')
 
-                    if optimizer.is_best:
-                        # Save the model
-                        save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
-                                        remove_old_checkpoints=args.lm_type != 'transformer')
+                duration_eval = time.time() - start_time_eval
 
-                        # test
-                        ppl_test_avg = 0.
-                        for eval_set in eval_sets:
-                            ppl_test, _ = eval_ppl([model.module], eval_set,
-                                                batch_size=1, bptt=args.bptt)
-                            logger.info('PPL (%s): %.2f' % (eval_set.set, ppl_test))
-                            ppl_test_avg += ppl_test
-                        if len(eval_sets) > 0:
-                            logger.info('PPL (avg.): %.2f' % (ppl_test_avg / len(eval_sets)))
-
-                    duration_eval = time.time() - start_time_eval
+                if hvd.rank() == 0:
                     logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
 
-                    # Early stopping
-                    if optimizer.is_early_stop:
-                        break
+                # Early stopping
+                if optimizer.is_early_stop:
+                    break
 
-                    # Convert to fine-tuning stage
-                    if optimizer.n_epochs == args.convert_to_sgd_epoch:
-                        n_epochs = optimizer.n_epochs
-                        n_steps = optimizer.n_steps
-                        optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
-                        optimizer = LRScheduler(optimizer, args.lr,
+                # Convert to fine-tuning stage
+                if optimizer.n_epochs == args.convert_to_sgd_epoch:
+
+                    n_epochs = optimizer.n_epochs
+                    n_steps = optimizer.n_steps
+                    optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
+
+                    optimizer = hvd.DistributedOptimizer(
+                                    optimizer, named_parameters=model.named_parameters(),
+                                    compression=hvd.Compression.none,
+                                    backward_passes_per_step=batch_per_allreduce)
+                    hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+                    hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+                    optimizer = LRScheduler(optimizer, args.lr,
                                                 decay_type='always',
                                                 decay_start_epoch=0,
                                                 decay_rate=0.5)
-                        optimizer._epoch = n_epochs
-                        optimizer._step = n_steps
+                    optimizer._epoch = n_epochs
+                    optimizer._step = n_steps
+                    if hvd.rank() == 0:
                         logger.info('========== Convert to SGD ==========')
-
 
                 if optimizer.n_epochs == args.n_epochs:
                     break
@@ -338,7 +347,8 @@ def main():
                 start_time_epoch = time.time()
 
     duration_train = time.time() - start_time_train
-    logger.info('Total time: %.2f hour' % (duration_train / 3600))
+    if hvd.rank() == 0:
+        logger.info('Total time: %.2f hour' % (duration_train / 3600))
 
     reporter.tf_writer.close()
 

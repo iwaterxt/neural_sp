@@ -392,7 +392,7 @@ def main():
 
                 if hvd.rank() == 0:
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                                (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size/hvd.size(),
+                                (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
                                 loss_train, loss_dev,
                                 optimizer.lr, len(batch_train['utt_ids']),
                                 xlen, ylen, duration_step / 60))
@@ -425,7 +425,7 @@ def main():
             metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1)
 
             metric_dev = hvd.allreduce(np2tensor(np.array([metric_dev], dtype=float), hvd.local_rank()))
-            loss_dev = metric_dev.item()/hvd.size()
+            loss_dev = metric_dev.item()
             if hvd.rank() == 0:
                 logger.info('Loss : %.2f %%' % (loss_dev))
             optimizer.epoch(loss_dev)
@@ -487,7 +487,7 @@ def main():
 
 def eval_epoch(models, dataloader, recog_params, args, epochs):
     if args.metric == 'loss':
-        metric = eval_ppl_parallel(models, dataloader, epochs, batch_size=args.batch_size)[1]
+        _, metric = eval_ppl_parallel(models, dataloader, epochs, batch_size=args.batch_size)[1]
     else:
         raise NotImplementedError(args.metric)
     return metric

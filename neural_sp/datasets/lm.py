@@ -27,12 +27,12 @@ from neural_sp.datasets.token_converter.word import Idx2word
 from neural_sp.datasets.token_converter.word import Word2idx
 from neural_sp.datasets.token_converter.wordpiece import Idx2wp
 from neural_sp.datasets.token_converter.wordpiece import Wp2idx
-
+import torch.utils.data as data
 random.seed(1)
 np.random.seed(1)
 
 
-class Dataset(object):
+class Dataset(data.Dataset):
 
     def __init__(self, tsv_path, dict_path,
                  unit, batch_size, nlsyms=False, n_epochs=None,
@@ -144,6 +144,19 @@ class Dataset(object):
 
     def __len__(self):
         return len(self.concat_ids.reshape((-1,)))
+
+    def __getitem__(self, index):
+        """Generate each mini-batch.
+        """
+
+        
+        batch_size = self.batch_size
+
+        bptt = self.bptt
+
+        ys = self.concat_ids[:, index*bptt:(index+1)*bptt]
+
+        return ys
 
     @property
     def epoch_detail(self):

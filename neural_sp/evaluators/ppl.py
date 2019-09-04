@@ -140,20 +140,38 @@ def eval_ppl_parallel(models, dataloader, epochs, batch_size=1, bptt=None,
     with tqdm(total=data_size/hvd.size(),
               desc='Eval Epoch     #{}'.format(epochs),
               disable=not verbose) as pbar_epoch:
+        if is_lm:
+            for _, ys in enumerate(dataloader):
 
-        for _, batch in enumerate(dataloader):
-            bs = len(batch['ys'])
-            if skip_thought:
-                loss, _ = models[0](batch['ys'],
-                                    ys_prev=batch['ys_prev'],
-                                    ys_next=batch['ys_next'],
-                                    is_eval=True)
-            else:
-                loss, _ = models[0](batch, task='all', is_eval=True)
-            total_loss += loss.item() * bs
-            n_tokens += sum([len(y) for y in batch['ys']])
-            # NOTE: loss is divided by batch size in the ASR model
-            pbar_epoch.update(bs)
+                bs, time = ys.shape[:2]
+                if n_caches > 0:
+                    assert isinstance(models[0], RNNLM)
+                    # NOTE: cache is not supported for GatedConvLM/TransformerLM now
+                    for t in range(time - 1):
+                        loss, hidden = models[0](ys[:, t:t + 2], hidden, is_eval=True, n_caches=n_caches)[:2]
+                        total_loss += loss.item() * bs
+                        n_tokens += bs
+                else:
+                    loss, hidden = models[0](ys, hidden, is_eval=True)[:2]
+                    total_loss += loss.item() * bs * (time - 1)
+                    n_tokens += bs * (time - 1)
+                    
+                pbar_epoch.update(bs)
+
+        else:
+            for _, batch in enumerate(dataloader):
+                bs = len(batch['ys'])
+                if skip_thought:
+                    loss, _ = models[0](batch['ys'],
+                                        ys_prev=batch['ys_prev'],
+                                        ys_next=batch['ys_next'],
+                                        is_eval=True)
+                else:
+                    loss, _ = models[0](batch, task='all', is_eval=True)
+                total_loss += loss.item() * bs
+                n_tokens += sum([len(y) for y in batch['ys']])
+                # NOTE: loss is divided by batch size in the ASR model
+                pbar_epoch.update(bs)
 
     avg_loss = total_loss / n_tokens
     ppl = np.exp(avg_loss)
