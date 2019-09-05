@@ -54,7 +54,7 @@ def eval_ppl(models, dataset, batch_size=1, bptt=None,
         pbar = tqdm(total=len(dataset))
     while True:
         if is_lm:
-            ys, is_new_epoch = dataset.getitem(batch_size, bptt)
+            ys, is_new_epoch = dataset.next(batch_size, bptt)
             bs, time = ys.shape[:2]
             if n_caches > 0:
                 assert isinstance(models[0], RNNLM)
