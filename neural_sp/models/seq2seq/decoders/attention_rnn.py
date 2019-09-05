@@ -38,7 +38,6 @@ from neural_sp.models.torch_utils import np2tensor
 from neural_sp.models.torch_utils import pad_list
 from neural_sp.models.torch_utils import tensor2np
 from neural_sp.utils import mkdir_join
-import GPUtil
 
 import matplotlib
 matplotlib.use('Agg')
