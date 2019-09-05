@@ -252,32 +252,34 @@ def main():
                 loss_train = loss.item()
                 del loss
                 hidden = model.repackage_state(hidden)
-                reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
-                # NOTE: loss/acc/ppl are already added in the model
-                reporter.step()
+                if hvd.rank() == 0:
+                    reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
+                    # NOTE: loss/acc/ppl are already added in the model
+                    reporter.step()
 
                 if optimizer.n_steps % args.print_step == 0:
+                    model.eval()
                     # Compute loss in the dev set
                     ys_dev = dev_set.next()[0]
                     loss, _, reporter = model(ys_dev, None, reporter, is_eval=True)
                     loss_dev = loss.item()
                     del loss
-                    reporter.step(is_eval=True)
+                    
 
                     duration_step = time.time() - start_time_step
-                    logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
-                                (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
-                                loss_train, loss_dev,
-                                np.exp(loss_train), np.exp(loss_dev),
-                                optimizer.lr, ys_train.shape[0], duration_step / 60))
+                    if hvd.rank() == 0:
+                        reporter.step(is_eval=True)
+                        logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
+                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
+                                    loss_train, loss_dev,
+                                    np.exp(loss_train), np.exp(loss_dev),
+                                    optimizer.lr, ys_train.shape[0], duration_step / 60))
                     start_time_step = time.time()
                 pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
 
             # Save fugures of loss and accuracy
             if optimizer.n_steps % (args.print_step * 10) == 0:
                 reporter.snapshot()
-                if args.lm_type == 'transformer':
-                    model.plot_attention()
 
             # Save checkpoint and evaluate model per epoch
             duration_epoch = time.time() - start_time_epoch
@@ -285,11 +287,11 @@ def main():
                 logger.info('========== EPOCH:%d (%.2f min) ==========' %(optimizer.n_epochs + 1, duration_epoch / 60))
 
             if optimizer.n_epochs + 1 < args.eval_start_epoch:
-                optimizer.epoch()
-                reporter.epoch()
 
                 # Save the model
                 if hvd.rank() == 0:
+                    optimizer.epoch()
+                    reporter.epoch()
                     save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                         remove_old_checkpoints=args.lm_type != 'transformer')
             else:
@@ -300,9 +302,8 @@ def main():
 
                 if hvd.rank() == 0:
                     logger.info('PPL : %.2f' %  ppl_dev)
-
-                optimizer.epoch(ppl_dev)
-                reporter.epoch(ppl_dev, name='perplexity')
+                    optimizer.epoch(ppl_dev)
+                    reporter.epoch(ppl_dev, name='perplexity')
 
                 if optimizer.is_best and hvd.rank() == 0:
                     # Save the model
