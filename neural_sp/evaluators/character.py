@@ -95,8 +95,8 @@ def eval_char(models, dataset, recog_params, epoch,
                 f_ref.write(ref + ' (' + speaker + '-' + utt_id + ')\n')
                 f_hyp.write(hyp + ' (' + speaker + '-' + utt_id + ')\n')
                 logger.info('utt-id: %s' % utt_id)
-                logger.info('Ref: %s' % str(ref))
-                logger.info('Hyp: %s' % str(hyp))
+                logger.info('Ref: %s' % ref)
+                logger.info('Hyp: %s' % hyp)
                 logger.info('-' * 50)
 
                 if ('char' in dataset.unit and 'nowb' not in dataset.unit) or (task_idx > 0 and dataset.unit_sub1 == 'char'):

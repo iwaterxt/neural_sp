@@ -76,7 +76,7 @@ def set_logger(save_path, key, stdout=False):
     """
     logger = getLogger(key)
     sh = StreamHandler()
-    fh = FileHandler(save_path)
+    fh = FileHandler(save_path, encoding='utf-8')
 
     logger.setLevel(DEBUG)
     sh.setLevel(WARNING)
