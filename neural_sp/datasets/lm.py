@@ -148,14 +148,8 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
         """Generate each mini-batch.
         """
-        if batch_size is None:
-            batch_size = self.batch_size
-        elif self.concat_ids.shape[0] != batch_size:
-            self.concat_ids = self.concat_ids.reshape((batch_size, -1))
-            # NOTE: only for the first iteration during evaluation
 
-        if bptt is None:
-            bptt = self.bptt
+        bptt = self.bptt
 
         ys = self.concat_ids[:, index*bptt:(index+1)*bptt]
 
