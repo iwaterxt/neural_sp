@@ -62,7 +62,7 @@ class ChunkDataloader(DataLoader):
 
         for item in batch:
             print (item)
-            y.append((item))
+            y.append(item)
         print ("========y========")
         print (y)
         return y
