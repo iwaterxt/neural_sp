@@ -242,8 +242,8 @@ def main():
                 disable=not verbose) as pbar_epoch:
             # Compute loss in the training set
             for _, ys_train in enumerate(train_loader):
-                pass
-                '''
+                
+                
                 accum_n_tokens += sum([len(y) for y in ys_train])
                 optimizer.zero_grad()
                 loss, hidden, reporter = model(ys_train, hidden, reporter)
@@ -286,7 +286,7 @@ def main():
                 print (ys_train.shape[0])
                 print (ys_train.shape[1])
                 pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1]-1))
-                '''
+                
             # Save fugures of loss and accuracy
             if optimizer.n_steps % (args.print_step * 10) == 0:
                 reporter.snapshot()
