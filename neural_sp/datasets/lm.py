@@ -149,7 +149,6 @@ class Dataset(data.Dataset):
         """Generate each mini-batch.
         """
 
-        print (index)
         
         bptt = self.bptt
 
