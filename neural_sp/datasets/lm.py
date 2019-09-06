@@ -151,7 +151,7 @@ class Dataset(data.Dataset):
 
         bptt = self.bptt
         print (self.concat_ids.shape[0])
-        print (self.concat_ids[0,929500:9296000])
+        print (self.concat_ids[0,929500:929509])
 
         ys = self.concat_ids[:, index*bptt:(index+1)*bptt]
 
