@@ -58,21 +58,12 @@ class ChunkDataloader(DataLoader):
 
     def collate_fn(self, batch):
 
-        utt_ids = []
-        x = []
         y = []
 
-        print (type(batch))
         for item in batch:
-            print(item)
+            y.append(item)
 
-        data = {
-            "utt_ids": utt_ids,
-                "x": torch.FloatTensor(x),
-                "y": torch.LongTensor(y)
-        }
-
-        return data
+        return torch.FloatTensor(y)
 
       
 class SeqDataloader(DataLoader):
