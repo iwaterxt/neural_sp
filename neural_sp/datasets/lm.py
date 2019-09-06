@@ -152,6 +152,7 @@ class Dataset(data.Dataset):
         bptt = self.bptt
 
         ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
+        
         return ys
 
     @property
@@ -192,7 +193,7 @@ class Dataset(data.Dataset):
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
 
-        ys = self.concat_ids[:, self.offset:self.offset + bptt]
+        ys = self.concat_ids[self.offset:self.offset + bptt]
         self.offset += bptt - 1
         # NOTE: the last token in ys must be feeded as inputs in the next mini-batch
 
