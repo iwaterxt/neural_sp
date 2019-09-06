@@ -150,8 +150,6 @@ class Dataset(data.Dataset):
         """
 
         
-        batch_size = self.batch_size
-
         bptt = self.bptt
 
         ys = self.concat_ids[:, index*bptt:(index+1)*bptt]
