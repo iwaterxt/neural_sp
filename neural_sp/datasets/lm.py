@@ -152,7 +152,7 @@ class Dataset(data.Dataset):
         bptt = self.bptt
 
         ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
-
+        print (ys)
         return ys
 
     @property
