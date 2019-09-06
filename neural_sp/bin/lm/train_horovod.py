@@ -282,7 +282,7 @@ def main():
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))
                     start_time_step = time.time()
                 print (ys_train)
-                pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
+                #pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
 
             # Save fugures of loss and accuracy
             if optimizer.n_steps % (args.print_step * 10) == 0:
