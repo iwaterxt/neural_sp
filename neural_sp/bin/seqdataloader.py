@@ -61,11 +61,10 @@ class ChunkDataloader(DataLoader):
         utt_ids = []
         x = []
         y = []
+
+        print (type(batch))
         for item in batch:
-          utt_ids.append(item['utt_ids'][0])
-          x.append(item['x'][0])
-          y.append(item['y'][0])
-        #feats, utt_ids, labels = zip(*batch)
+
         data = {
             "utt_ids": utt_ids,
                 "x": torch.FloatTensor(x),
