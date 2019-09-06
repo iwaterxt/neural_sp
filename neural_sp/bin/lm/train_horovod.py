@@ -96,12 +96,12 @@ def main():
 
     train_loader = ChunkDataloader(train_set,
                                    batch_size=args.batch_size,
-                                   num_workers = 0,
+                                   num_workers = 1,
                                    distributed=True)
 
     val_loader = ChunkDataloader(dev_set,
                                  batch_size=args.batch_size,
-                                 num_workers=0,
+                                 num_workers=1,
                                  distributed=True)
 
 
@@ -271,7 +271,6 @@ def main():
                     loss_dev = loss.item()
                     del loss
                     
-
                     duration_step = time.time() - start_time_step
                     if hvd_rank == 0:
                         reporter.step(is_eval=True)
@@ -284,7 +283,7 @@ def main():
                 #print (ys_train)
                 print (ys_train.shape[0])
                 print (ys_train.shape[1])
-                pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
+                #pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
 
             # Save fugures of loss and accuracy
             if optimizer.n_steps % (args.print_step * 10) == 0:
