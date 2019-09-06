@@ -152,7 +152,6 @@ class Dataset(data.Dataset):
         bptt = self.bptt
 
         ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
-        
         return ys
 
     @property
@@ -180,9 +179,7 @@ class Dataset(data.Dataset):
         """
         is_new_epoch = False
 
-        if batch_size is None:
-            batch_size = self.batch_size
-        elif self.concat_ids.shape[0] != batch_size:
+        self.concat_ids.shape[0] != batch_size:
             self.concat_ids = self.concat_ids.reshape((batch_size, -1))
             # NOTE: only for the first iteration during evaluation
 
@@ -193,12 +190,12 @@ class Dataset(data.Dataset):
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
 
-        ys = self.concat_ids[self.offset:self.offset + bptt]
+        ys = self.concat_ids[:, self.offset:self.offset + bptt]
         self.offset += bptt - 1
         # NOTE: the last token in ys must be feeded as inputs in the next mini-batch
 
         # Last mini-batch
-        if (self.offset + 1) * batch_size >= len(self):
+        if (self.offset + 1) * batch_size >= self.concat_ids.shape[0]*self.concat_ids.shape[1]:
             self.offset = 0
             is_new_epoch = True
             self.epoch += 1
