@@ -132,7 +132,7 @@ class Dataset(data.Dataset):
             indices = indices[::-1]
         for i in indices:
             assert self.df['token_id'][i] != ''
-            concat_ids += [self.eos] + list(map(int, self.df['token_id'][i].split()))
+            concat_ids += [self.sos] + list(map(int, self.df['token_id'][i].split()))
         concat_ids += [self.eos]
         # NOTE: <sos> and <eos> have the same index
 
