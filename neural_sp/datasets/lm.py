@@ -178,9 +178,9 @@ class Dataset(data.Dataset):
 
         """
         is_new_epoch = False
-
-        self.concat_ids.shape[0] != batch_size:
-            self.concat_ids = self.concat_ids.reshape((batch_size, -1))
+        batch_size = self.batch_size
+        self.concat_ids.shape[0] != self.batch_size:
+            self.concat_ids = self.concat_ids.reshape((self.batch_size, -1))
             # NOTE: only for the first iteration during evaluation
 
         if bptt is None:
