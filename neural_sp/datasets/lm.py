@@ -154,7 +154,7 @@ class Dataset(data.Dataset):
 
         bptt = self.bptt
 
-        ys = self.concat_ids[:, index*bptt:(index+1)*bptt]
+        ys = self.concat_ids[:, index:index+1]
 
         return ys
 
