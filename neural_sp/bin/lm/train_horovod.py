@@ -95,12 +95,12 @@ def main():
     args.vocab = train_set.vocab
 
     train_loader = ChunkDataloader(train_set,
-                                   batch_size=1,
+                                   batch_size=args.batch_size,
                                    num_workers = 1,
                                    distributed=True)
 
     val_loader = ChunkDataloader(dev_set,
-                                 batch_size=1,
+                                 batch_size=args.batch_size,
                                  num_workers=1,
                                  distributed=True)
 
