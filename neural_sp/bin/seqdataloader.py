@@ -60,7 +60,7 @@ class ChunkDataloader(DataLoader):
         y = []
         #print (len(batch))
         for item in batch:
-              y.append(x)
+              y.append(item)
         #print (len(y))
         return np.array(y)
 
