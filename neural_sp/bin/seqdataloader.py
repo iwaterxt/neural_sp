@@ -63,7 +63,7 @@ class ChunkDataloader(DataLoader):
         for item in batch:
             y.append(item)
 
-        return torch.FloatTensor(y)
+        return y
 
       
 class SeqDataloader(DataLoader):
