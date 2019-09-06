@@ -61,7 +61,8 @@ class ChunkDataloader(DataLoader):
 
         for item in batch:
             for x in item:
-              y.append(x)
+              if x is not None:
+                y.append(x)
         return np.array(y)
 
       
