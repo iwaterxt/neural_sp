@@ -234,6 +234,7 @@ def main():
     start_time_step = time.time()
     data_size = len(train_set)
     accum_n_tokens = 0
+    verbose = 1 if hvd.rank() == 0 else 0
     while True:
         model.train()
         with tqdm(total=data_size/hvd.size(),
