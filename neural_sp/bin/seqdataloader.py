@@ -52,7 +52,7 @@ class ChunkDataloader(DataLoader):
                                            sampler=sampler,
                                            num_workers=num_workers,
                                            collate_fn=self.collate_fn,
-                                           drop_last=True,
+                                           drop_last=False,
                                            timeout=timeout)
 
     def collate_fn(self, batch):
