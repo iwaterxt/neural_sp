@@ -243,7 +243,6 @@ def main():
             # Compute loss in the training set
             for _, ys_train in enumerate(train_loader):
                 
-                print (ys_train)
                 accum_n_tokens += sum([len(y) for y in ys_train])
                 optimizer.zero_grad()
                 loss, hidden, reporter = model(ys_train, hidden, reporter)
