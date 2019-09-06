@@ -150,9 +150,9 @@ class Dataset(data.Dataset):
         """
 
         bptt = self.bptt
-        print (self.concat_ids.shape[1])
-        print ((index+1)*bptt-index)
-        print (index)
+        if self.concat_ids.shape[0] != 1:
+            self.concat_ids = self.concat_ids.reshape((1, -1))
+            
         ys = self.concat_ids[:, index*(bptt-1):(index+1)*bptt-index]
 
         return ys
