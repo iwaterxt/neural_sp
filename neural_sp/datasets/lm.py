@@ -138,7 +138,7 @@ class Dataset(data.Dataset):
 
         # Reshape
         n_utts = len(concat_ids)
-        concat_ids = concat_ids[:(n_utts-1) // (self.bptt-1) * (self.bptt-1)]
+        concat_ids = concat_ids[:(n_utts-1) // ((self.bptt-1)*self.batch_size) * (self.bptt-1)*self.batch_size]
         print('Removed %d tokens / %d tokens' % (n_utts - len(concat_ids), n_utts))
         self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
 
@@ -179,6 +179,7 @@ class Dataset(data.Dataset):
         """
         is_new_epoch = False
         batch_size = self.batch_size
+
         if self.concat_ids.shape[0] != self.batch_size:
             self.concat_ids = self.concat_ids.reshape((self.batch_size, -1))
             # NOTE: only for the first iteration during evaluation
