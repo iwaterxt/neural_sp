@@ -179,7 +179,7 @@ class Dataset(data.Dataset):
         """
         is_new_epoch = False
         batch_size = self.batch_size
-        self.concat_ids.shape[0] != self.batch_size:
+        if self.concat_ids.shape[0] != self.batch_size:
             self.concat_ids = self.concat_ids.reshape((self.batch_size, -1))
             # NOTE: only for the first iteration during evaluation
 
