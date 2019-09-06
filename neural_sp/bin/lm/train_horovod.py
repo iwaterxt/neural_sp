@@ -167,7 +167,8 @@ def main():
                                     decay_rate=0.5)
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
-            logger.info('========== Convert to SGD ==========')
+            if hvd.rank() == 0:
+                logger.info('========== Convert to SGD ==========')
             #broadcast
             optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
             hvd.broadcast_parameters(model.state_dict(), root_rank=0)
@@ -182,9 +183,9 @@ def main():
         shutil.copy(args.dict, os.path.join(save_path, 'dict.txt'))
         if args.unit == 'wp':
             shutil.copy(args.wp_model, os.path.join(save_path, 'wp.model'))
-
-        for k, v in sorted(vars(args).items(), key=lambda x: x[0]):
-            logger.info('%s: %s' % (k, str(v)))
+        if hvd.rank() == 0:
+            for k, v in sorted(vars(args).items(), key=lambda x: x[0]):
+                logger.info('%s: %s' % (k, str(v)))
 
         # Count total parameters
         for n in sorted(list(model.num_params_dict.keys())):
