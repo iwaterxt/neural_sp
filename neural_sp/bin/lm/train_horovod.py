@@ -283,7 +283,7 @@ def main():
                 #print (ys_train)
                 print (ys_train.shape[0])
                 print (ys_train.shape[1])
-                #pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
+                pbar_epoch.update(ys_train.shape[0] * (ys_train.shape[1] - 1))
 
             # Save fugures of loss and accuracy
             if optimizer.n_steps % (args.print_step * 10) == 0:
