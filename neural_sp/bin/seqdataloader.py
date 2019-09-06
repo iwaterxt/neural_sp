@@ -64,7 +64,7 @@ class ChunkDataloader(DataLoader):
 
         print (type(batch))
         for item in batch:
-            print(type(item))
+            print(item)
 
         data = {
             "utt_ids": utt_ids,
