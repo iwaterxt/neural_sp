@@ -64,7 +64,7 @@ class ChunkDataloader(DataLoader):
             for x in item:
               y.append(x)
         print ("========y========")
-        return numpy.array(y)
+        return np.array(y)
 
       
 class SeqDataloader(DataLoader):
