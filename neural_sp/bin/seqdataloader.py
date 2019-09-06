@@ -58,11 +58,11 @@ class ChunkDataloader(DataLoader):
     def collate_fn(self, batch):
 
         y = []
-        print (len(batch))
+        #print (len(batch))
         for item in batch:
             for x in item:
               y.append(x)
-        print (len(y))
+        #print (len(y))
         return np.array(y)
 
       
