@@ -96,12 +96,12 @@ def main():
 
     train_loader = ChunkDataloader(train_set,
                                    batch_size=args.batch_size,
-                                   num_workers = 1,
+                                   num_workers = 0,
                                    distributed=True)
 
     val_loader = ChunkDataloader(dev_set,
                                  batch_size=args.batch_size,
-                                 num_workers=1,
+                                 num_workers=0,
                                  distributed=True)
 
 
