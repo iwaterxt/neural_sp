@@ -58,7 +58,7 @@ def main():
                         nlsyms=args.nlsyms,
                         unit=args.unit,
                         wp_model=args.wp_model,
-                        batch_size=args.batch_size * args.n_gpus,
+                        batch_size=args.batch_size,
                         n_epochs=args.n_epochs,
                         min_n_tokens=args.min_n_tokens,
                         bptt=args.bptt,
@@ -70,7 +70,7 @@ def main():
                       nlsyms=args.nlsyms,
                       unit=args.unit,
                       wp_model=args.wp_model,
-                      batch_size=args.batch_size * args.n_gpus,
+                      batch_size=args.batch_size,
                       bptt=args.bptt,
                       backward=args.backward,
                       serialize=args.serialize)
