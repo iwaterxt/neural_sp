@@ -30,6 +30,7 @@ from neural_sp.bin.train_utils import set_save_path
 from neural_sp.datasets.lm import Dataset
 from neural_sp.evaluators.ppl import eval_ppl
 from neural_sp.models.data_parallel import CustomDataParallel
+from neural_sp.bin.seqdataloader import ChunkDataloader
 from neural_sp.models.lm.build import build_lm
 from neural_sp.trainers.lr_scheduler import LRScheduler
 from neural_sp.trainers.model_name import set_lm_name
@@ -92,12 +93,12 @@ def main():
 
     train_loader = ChunkDataloader(train_set,
                                    batch_size=args.batch_size,
-                                   num_workers = 2,
+                                   num_workers = 1,
                                    distributed=True)
 
     val_loader = ChunkDataloader(dev_set,
                                  batch_size=args.batch_size,
-                                 num_workers=2,
+                                 num_workers=1,
                                  distributed=True)
 
 

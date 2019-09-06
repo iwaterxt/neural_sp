@@ -57,11 +57,19 @@ class ChunkDataloader(DataLoader):
                                            timeout=timeout)
 
     def collate_fn(self, batch):
-        feats, utt_ids, labels = zip(*batch)
+
+        utt_ids = []
+        x = []
+        y = []
+        for item in batch:
+          utt_ids.append(batch['utt_ids'][0])
+          x.append(batch['x'][0])
+          y.append(batch['y'][0])
+        #feats, utt_ids, labels = zip(*batch)
         data = {
             "utt_ids": utt_ids,
-                "x": torch.FloatTensor(list(feats)),
-                "y": torch.LongTensor(list(labels))
+                "x": torch.FloatTensor(x),
+                "y": torch.LongTensor(y)
         }
 
         return data
