@@ -61,7 +61,7 @@ class ChunkDataloader(DataLoader):
         y = []
 
         for item in batch:
-            y.append(item)
+            y.append(list(item))
 
         return y
 
