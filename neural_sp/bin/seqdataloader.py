@@ -54,7 +54,7 @@ class ChunkDataloader(DataLoader):
                                            collate_fn=self.collate_fn,
                                            drop_last=False,
                                            timeout=timeout)
-
+'''
     def collate_fn(self, batch):
 
         y = []
@@ -64,7 +64,7 @@ class ChunkDataloader(DataLoader):
               y.append(x)
         print (len(y))
         return np.array(y)
-
+'''
       
 class SeqDataloader(DataLoader):
     
