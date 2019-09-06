@@ -51,7 +51,6 @@ class ChunkDataloader(DataLoader):
                                            batch_size=batch_size,
                                            sampler=sampler,
                                            num_workers=num_workers,
-                                           collate_fn=self.collate_fn,
                                            drop_last=False,
                                            timeout=timeout)
 '''
