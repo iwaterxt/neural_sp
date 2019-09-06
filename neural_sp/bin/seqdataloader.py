@@ -62,9 +62,9 @@ class ChunkDataloader(DataLoader):
         x = []
         y = []
         for item in batch:
-          utt_ids.append(batch['utt_ids'][0])
-          x.append(batch['x'][0])
-          y.append(batch['y'][0])
+          utt_ids.append(item['utt_ids'][0])
+          x.append(item['x'][0])
+          y.append(item['y'][0])
         #feats, utt_ids, labels = zip(*batch)
         data = {
             "utt_ids": utt_ids,
