@@ -138,22 +138,19 @@ class Dataset(data.Dataset):
 
         # Reshape
         n_utts = len(concat_ids)
-        concat_ids = concat_ids[:n_utts // batch_size * batch_size]
+        concat_ids = concat_ids[:(n_utts-1) // (self.bptt-1) * (self.bptt-1)]
         print('Removed %d tokens / %d tokens' % (n_utts - len(concat_ids), n_utts))
-        self.concat_ids = np.array(concat_ids).reshape((batch_size, -1))
+        self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
 
     def __len__(self):
-        return len(self.concat_ids.reshape((self.batch_size, -1)))
+        return self.concat_ids.shape[0]//(self.bptt -1)
 
     def __getitem__(self, index):
         """Generate each mini-batch.
         """
 
         bptt = self.bptt
-        if self.concat_ids.shape[0] != 1:
-            self.concat_ids = self.concat_ids.reshape((1, -1))
-        print ((index+1)*bptt-index)  
-        print (index) 
+
         ys = self.concat_ids[:, index*(bptt-1):(index+1)*bptt-index]
 
         return ys
