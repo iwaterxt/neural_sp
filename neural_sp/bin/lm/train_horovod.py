@@ -63,7 +63,7 @@ def main():
                         nlsyms=args.nlsyms,
                         unit=args.unit,
                         wp_model=args.wp_model,
-                        batch_size=args.batch_size * args.n_gpus,
+                        batch_size=args.batch_size,
                         n_epochs=args.n_epochs,
                         min_n_tokens=args.min_n_tokens,
                         bptt=args.bptt,
@@ -75,7 +75,7 @@ def main():
                       nlsyms=args.nlsyms,
                       unit=args.unit,
                       wp_model=args.wp_model,
-                      batch_size=args.batch_size * args.n_gpus,
+                      batch_size=args.batch_size,
                       bptt=args.bptt,
                       backward=args.backward,
                       serialize=args.serialize)
@@ -242,7 +242,6 @@ def main():
                 disable=not verbose) as pbar_epoch:
             # Compute loss in the training set
             for _, ys_train in enumerate(train_loader):
-                print (ys_train)
                 accum_n_tokens += sum([len(y) for y in ys_train])
                 optimizer.zero_grad()
                 loss, hidden, reporter = model(ys_train, hidden, reporter)
