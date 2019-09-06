@@ -200,6 +200,7 @@ def main():
     while True:
         # Compute loss in the training set
         ys_train, is_new_epoch = train_set.next()
+        print ("=========================")
         print (ys_train)
         accum_n_tokens += sum([len(y) for y in ys_train])
         optimizer.zero_grad()
