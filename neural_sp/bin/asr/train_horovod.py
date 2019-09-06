@@ -61,7 +61,7 @@ def main():
 
     hvd.init()
     torch.cuda.set_device(hvd.local_rank())
-
+    hvd_rank = hvd.rank()
     # Load a conf file
     if args.resume:
         conf = load_config(os.path.join(os.path.dirname(args.resume), 'conf.yml'))
@@ -197,7 +197,7 @@ def main():
             save_path = set_save_path(save_path)  # avoid overwriting
 
     # Set logger
-    if hvd.rank() == 0:
+    if hvd_rank == 0:
         logger = set_logger(os.path.join(save_path, 'train.log'),
                             key='training', stdout=args.stdout)
         # Set process name
@@ -219,7 +219,7 @@ def main():
         optimizer = set_optimizer(model, 'sgd' if epoch > conf['convert_to_sgd_epoch'] else conf['optimizer'],
                                   conf['lr'], conf['weight_decay'])
 
-        if hvd.rank() == 0 :
+        if hvd_rank == 0 :
             # Restore the last saved model
             model, optimizer = load_checkpoint(model, args.resume, optimizer, resume=True)
 
@@ -270,7 +270,7 @@ def main():
         if args.nlsyms:
             shutil.copy(args.nlsyms, os.path.join(save_path, 'nlsyms.txt'))
 
-        if hvd.rank() == 0:
+        if hvd_rank == 0:
             for k, v in sorted(vars(args).items(), key=lambda x: x[0]):
                 logger.info('%s: %s' % (k, str(v)))
 
@@ -326,7 +326,7 @@ def main():
     start_time_step = time.time()
     accum_n_tokens = 0
 
-    verbose = 1 if hvd.rank() == 0 else 0
+    verbose = 1 if hvd_rank == 0 else 0
     data_size = len(train_set)
     while True:
       model.train()
@@ -359,7 +359,7 @@ def main():
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-            if hvd.rank() == 0:
+            if hvd_rank == 0:
                 reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
                 # NOTE: loss/acc/ppl are already added in the model
                 reporter.step()
@@ -391,7 +391,7 @@ def main():
                     xlen = max(len(x) for x in batch_train['ys'])
                     ylen = max(len(y) for y in batch_train['ys_sub1'])
 
-                if hvd.rank() == 0:
+                if hvd_rank == 0:
                     reporter.step(is_eval=True)
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
                                 (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
@@ -409,12 +409,12 @@ def main():
         # Save checkpoint and evaluate model per epoch
         
         duration_epoch = time.time() - start_time_epoch
-        if hvd.rank() == 0:
+        if hvd_rank == 0:
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
                         (optimizer.n_epochs + 1, duration_epoch / 60))
 
         if optimizer.n_epochs + 1 < args.eval_start_epoch:
-            if hvd.rank() == 0:
+            if hvd_rank == 0:
                 optimizer.epoch()
                 reporter.epoch()
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
@@ -427,7 +427,7 @@ def main():
 
             metric_dev = hvd.allreduce(np2tensor(np.array([metric_dev], dtype=float), hvd.local_rank()))
             loss_dev = metric_dev.item()
-            if hvd.rank() == 0:
+            if hvd_rank == 0:
                 logger.info('Loss : %.2f %%' % (loss_dev))
                 optimizer.epoch(loss_dev)
                 reporter.epoch(loss_dev)
@@ -441,7 +441,7 @@ def main():
                 model.scheduled_sampling_trigger()
 
             duration_eval = time.time() - start_time_eval
-            if hvd.rank() == 0:
+            if hvd_rank == 0:
                 logger.info('Evaluation time: %.2f min' % (duration_eval / 60))
 
             # Early stopping
@@ -467,7 +467,7 @@ def main():
 
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
-            if hvd.rank() == 0:
+            if hvd_rank == 0:
                 logger.info('========== Convert to SGD ==========')
 
 
@@ -477,7 +477,7 @@ def main():
         start_time_epoch = time.time()
 
     duration_train = time.time() - start_time_train
-    if hvd.rank() == 0:
+    if hvd_rank == 0:
         logger.info('Total time: %.2f hour' % (duration_train / 3600))
 
     reporter.tf_writer.close()
