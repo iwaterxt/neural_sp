@@ -144,6 +144,7 @@ def eval_ppl_parallel(models, dataloader, epochs, batch_size=1, bptt=None,
             for _, ys in enumerate(dataloader):
 
                 bs, time = ys.shape
+                print (ys.shape)
                 if n_caches > 0:
                     assert isinstance(models[0], RNNLM)
                     # NOTE: cache is not supported for GatedConvLM/TransformerLM now
