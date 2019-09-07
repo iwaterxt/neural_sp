@@ -219,8 +219,7 @@ def main():
 
     # Set process name
     # Set logger
-    if hvd_rank == 0:
-        print (hvd_rank)
+    if hvd.rank() == 0:
         logger = set_logger(os.path.join(save_path, 'train.log'),
                             key='training', stdout=args.stdout)
         # Set process name
