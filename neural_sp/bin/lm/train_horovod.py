@@ -263,7 +263,7 @@ def main():
                     reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
                     # NOTE: loss/acc/ppl are already added in the model
                     reporter.step()
-
+                '''
                 if optimizer.n_steps % args.print_step == 0:
                     model.eval()
                     # Compute loss in the dev set
@@ -281,6 +281,7 @@ def main():
                                     np.exp(loss_train), np.exp(loss_dev),
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))
                     start_time_step = time.time()
+                '''
                 pbar_epoch.update(ys_train.shape[0])
                 
 

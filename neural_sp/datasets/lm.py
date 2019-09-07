@@ -144,7 +144,6 @@ class Dataset(data.Dataset):
         self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
 
     def __len__(self):
-        print (self.concat_ids.shape[0])
         return self.concat_ids.shape[0]//(self.bptt -1)
 
     def __getitem__(self, index):
