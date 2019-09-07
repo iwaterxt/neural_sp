@@ -51,7 +51,6 @@ def main():
     hvd.init()
     torch.cuda.set_device(hvd.local_rank())
     hvd_rank = hvd.rank()
-    print (hvd_rank)
     # Load a conf file
     if args.resume:
         conf = load_config(os.path.join(os.path.dirname(args.resume), 'conf.yml'))
@@ -84,18 +83,18 @@ def main():
                       n_customers=hvd.size(),
                       backward=args.backward,
                       serialize=args.serialize)
-    eval_sets = []
-    for s in args.eval_sets:
-        eval_sets += [Dataset(corpus=args.corpus,
-                              tsv_path=s,
+
+    eval_set = Dataset(corpus=args.corpus,
+                              tsv_path=args.eval_set,
                               dict_path=args.dict,
                               nlsyms=args.nlsyms,
                               unit=args.unit,
                               wp_model=args.wp_model,
-                              batch_size=1,
+                              batch_size=args.batch_size,
                               bptt=args.bptt,
+                              n_customers=hvd.size(),
                               backward=args.backward,
-                              serialize=args.serialize)]
+                              serialize=args.serialize)
 
     args.vocab = train_set.vocab
 
@@ -104,10 +103,16 @@ def main():
                                    num_workers = 1,
                                    distributed=True)
 
-    val_loader = ChunkDataloader(dev_set,
+    dev_loader = ChunkDataloader(dev_set,
+                                   batch_size=args.batch_size,
+                                   num_workers = 1,
+                                   distributed=True)
+
+    eval_loader = ChunkDataloader(eval_set,
                                  batch_size=args.batch_size,
                                  num_workers=1,
                                  distributed=True)
+
 
 
 
@@ -263,7 +268,7 @@ def main():
                     reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
                     # NOTE: loss/acc/ppl are already added in the model
                     reporter.step()
-                '''
+                
                 if optimizer.n_steps % args.print_step == 0:
                     model.eval()
                     # Compute loss in the dev set
@@ -281,7 +286,7 @@ def main():
                                     np.exp(loss_train), np.exp(loss_dev),
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))
                     start_time_step = time.time()
-                '''
+                
                 pbar_epoch.update(ys_train.shape[0])
                 
 

@@ -33,7 +33,7 @@ def parse():
                         help='tsv file path for the training set')
     parser.add_argument('--dev_set', type=str,
                         help='tsv file path for the development set')
-    parser.add_argument('--eval_sets', type=str, default=[], nargs='+',
+    parser.add_argument('--eval_set', type=str, 
                         help='tsv file paths for the evaluation sets')
     parser.add_argument('--nlsyms', type=str, default=False, nargs='?',
                         help='non-linguistic symbols file path')
