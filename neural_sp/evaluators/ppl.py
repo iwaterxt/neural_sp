@@ -142,6 +142,7 @@ def eval_ppl_parallel(models, dataloader, epochs, batch_size=1, bptt=None,
               disable=not verbose) as pbar_epoch:
         if is_lm:
             for _, ys in enumerate(dataloader):
+                print (type(ys))
                 print (ys.shape)
                 print (ys)
                 bs, time = ys.shape
