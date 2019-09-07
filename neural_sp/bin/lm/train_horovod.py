@@ -241,7 +241,7 @@ def main():
                 desc='Train Epoch     #{}'.format(optimizer.n_epochs + 1),
                 disable=not verbose) as pbar_epoch:
             # Compute loss in the training set
-            for _, ys_train in enumerate(val_loader):
+            for _, ys_train in enumerate(train_loader):
                 
                 accum_n_tokens += sum([len(y) for y in ys_train])
                 optimizer.zero_grad()
