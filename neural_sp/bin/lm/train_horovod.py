@@ -124,7 +124,11 @@ def main():
     if hvd_rank == 0:
         logger = set_logger(os.path.join(save_path, 'train.log'),
                             key='training', stdout=args.stdout)
-
+        # Set process name
+        logger.info('PID: %s' % os.getpid())
+        logger.info('USERNAME: %s' % os.uname()[1])
+        logger.info('NUMBER_DEVICES: %s' % hvd.size())
+    setproctitle(args.job_name if args.job_name else dir_name)
     # Model setting
     model = build_lm(args, save_path)
     # GPU setting
@@ -217,17 +221,8 @@ def main():
                                 factor=args.lr_factor,
                                 noam=args.lm_type == 'transformer')
 
-    # Set process name
-    # Set logger
-    if hvd.rank() == 0:
-        logger = set_logger(os.path.join(save_path, 'train.log'),
-                            key='training', stdout=args.stdout)
-        # Set process name
-        logger.info('PID: %s' % os.getpid())
-        logger.info('USERNAME: %s' % os.uname()[1])
-        logger.info('NUMBER_DEVICES: %s' % hvd.size())
     
-    setproctitle(args.job_name if args.job_name else dir_name)
+
     # Set reporter
     reporter = Reporter(save_path)
 
