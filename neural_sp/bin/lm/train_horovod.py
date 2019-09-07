@@ -301,8 +301,8 @@ def main():
                 start_time_eval = time.time()
                 # dev
                 model.eval()
-                ppl_dev, _ = eval_ppl_parallel([model], train_loader, optimizer.n_epochs, batch_size=args.batch_size)
-                ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
+                ppl_dev, _ = eval_ppl_parallel([model], val_loader, optimizer.n_epochs, batch_size=args.batch_size)
+                #ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
 
                 if hvd_rank == 0:
                     logger.info('PPL : %.2f' %  ppl_dev)
