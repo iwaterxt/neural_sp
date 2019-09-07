@@ -151,10 +151,9 @@ class Dataset(data.Dataset):
         """
 
         bptt = self.bptt
-        if (index+1)*bptt -index >= self.concat_ids.shape[0]:
-            ys = self.concat_ids[0:bptt]
-        else:
-            ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
+
+        ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
+        
         return ys
 
     @property

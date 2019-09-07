@@ -49,6 +49,7 @@ def main():
     hvd.init()
     torch.cuda.set_device(hvd.local_rank())
     hvd_rank = hvd.rank()
+    print (hvd_rank)
     # Load a conf file
     if args.resume:
         conf = load_config(os.path.join(os.path.dirname(args.resume), 'conf.yml'))
