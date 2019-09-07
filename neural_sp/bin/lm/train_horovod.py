@@ -332,9 +332,7 @@ def main():
                     optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
 
                     optimizer = hvd.DistributedOptimizer(
-                                    optimizer, named_parameters=model.named_parameters(),
-                                    compression=hvd.Compression.none,
-                                    backward_passes_per_step=batch_per_allreduce)
+                                    optimizer, named_parameters=model.named_parameters())
                     hvd.broadcast_parameters(model.state_dict(), root_rank=0)
                     hvd.broadcast_optimizer_state(optimizer, root_rank=0)
                     optimizer = LRScheduler(optimizer, args.lr,
