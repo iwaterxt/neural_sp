@@ -220,6 +220,7 @@ def main():
     # Set process name
     # Set logger
     if hvd_rank == 0:
+        print (hvd_rank)
         logger = set_logger(os.path.join(save_path, 'train.log'),
                             key='training', stdout=args.stdout)
         # Set process name
@@ -286,9 +287,6 @@ def main():
                     start_time_step = time.time()
                 pbar_epoch.update(ys_train.shape[0])
                 
-            # Save fugures of loss and accuracy
-            if optimizer.n_steps % (args.print_step * 10) == 0:
-                reporter.snapshot()
 
             # Save checkpoint and evaluate model per epoch
             duration_epoch = time.time() - start_time_epoch
