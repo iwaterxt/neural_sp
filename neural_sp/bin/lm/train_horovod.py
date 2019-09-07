@@ -298,7 +298,7 @@ def main():
             else:
                 start_time_eval = time.time()
                 # dev
-                ppl_dev, _ = eval_ppl([model], val_loader, batch_size=1, bptt=args.bptt)
+                ppl_dev, _ = eval_ppl_parallel([model], val_loader, batch_size=1, bptt=args.bptt)
                 ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
 
                 if hvd_rank == 0:
