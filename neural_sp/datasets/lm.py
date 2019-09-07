@@ -36,7 +36,7 @@ class Dataset(data.Dataset):
 
     def __init__(self, tsv_path, dict_path,
                  unit, batch_size, nlsyms=False, n_epochs=None,
-                 is_test=False, min_n_tokens=1, bptt=2,
+                 is_test=False, min_n_tokens=1, bptt=2, n_customers=1,
                  shuffle=False, backward=False, serialize=False,
                  wp_model=None, corpus=''):
         """A class for loading dataset.
@@ -71,6 +71,7 @@ class Dataset(data.Dataset):
         self.unit = unit
         self.batch_size = batch_size
         self.bptt = bptt
+        self.n_customers = n_customers
         self.sos = 2
         self.eos = 2
         self.max_epoch = n_epochs
@@ -138,20 +139,22 @@ class Dataset(data.Dataset):
 
         # Reshape
         n_utts = len(concat_ids)
-        concat_ids = concat_ids[:(n_utts-1) // ((self.bptt-1)*self.batch_size) * (self.bptt-1)*self.batch_size]
+        concat_ids = concat_ids[:(n_utts-1) // (bptt-1) * (bptt-1)]
         print('Removed %d tokens / %d tokens' % (n_utts - len(concat_ids), n_utts))
         self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
 
     def __len__(self):
-        return self.concat_ids.shape[0]//((self.bptt -1)*self.batch_size)
+        return self.concat_ids.shape[0]//(self.bptt -1)
 
     def __getitem__(self, index):
         """Generate each mini-batch.
         """
 
         bptt = self.bptt
-
-        ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
+        if (index+1)*bptt -index >= self.concat_ids.shape[0]:
+            ys = self.concat_ids[0:bptt]
+        else:
+            ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
         return ys
 
     @property

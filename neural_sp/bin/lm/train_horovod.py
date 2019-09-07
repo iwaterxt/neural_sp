@@ -67,6 +67,7 @@ def main():
                         n_epochs=args.n_epochs,
                         min_n_tokens=args.min_n_tokens,
                         bptt=args.bptt,
+                        n_customers=hvd.size(),
                         backward=args.backward,
                         serialize=args.serialize)
     dev_set = Dataset(corpus=args.corpus,
@@ -77,6 +78,7 @@ def main():
                       wp_model=args.wp_model,
                       batch_size=args.batch_size,
                       bptt=args.bptt,
+                      n_customers=hvd.size(),
                       backward=args.backward,
                       serialize=args.serialize)
     eval_sets = []
