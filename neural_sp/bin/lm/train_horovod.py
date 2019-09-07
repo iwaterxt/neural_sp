@@ -37,6 +37,7 @@ from neural_sp.trainers.lr_scheduler import LRScheduler
 from neural_sp.trainers.model_name import set_lm_name
 from neural_sp.trainers.optimizer import set_optimizer
 from neural_sp.trainers.reporter import Reporter
+from neural_sp.models.torch_utils import np2tensor
 from neural_sp.utils import mkdir_join
 
 torch.manual_seed(1)
