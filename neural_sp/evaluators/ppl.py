@@ -142,10 +142,9 @@ def eval_ppl_parallel(models, dataloader, epochs, batch_size=1, bptt=None,
               disable=not verbose) as pbar_epoch:
         if is_lm:
             for _, ys in enumerate(dataloader):
-                print (type(ys[0]))
-                print (ys.shape)
-                print (ys)
-                bs, time = ys.shape
+
+                bs = ys.shape[0]
+                time = ys[0].shape[0]
 
                 if n_caches > 0:
                     assert isinstance(models[0], RNNLM)
