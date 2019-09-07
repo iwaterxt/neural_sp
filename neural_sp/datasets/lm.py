@@ -143,7 +143,7 @@ class Dataset(data.Dataset):
         self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
 
     def __len__(self):
-        return self.concat_ids.shape[0]//(self.bptt -1)
+        return self.concat_ids.shape[0]//((self.bptt -1)*self.batch_size)
 
     def __getitem__(self, index):
         """Generate each mini-batch.
