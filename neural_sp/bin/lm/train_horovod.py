@@ -240,7 +240,7 @@ def main():
                 desc='Train Epoch     #{}'.format(optimizer.n_epochs + 1),
                 disable=not verbose) as pbar_epoch:
             # Compute loss in the training set
-            for _, ys_train in enumerate(train_loader):
+            for _, ys_train in enumerate(val_loader):
                 
                 accum_n_tokens += sum([len(y) for y in ys_train])
                 optimizer.zero_grad()
@@ -299,7 +299,7 @@ def main():
             else:
                 start_time_eval = time.time()
                 # dev
-                ppl_dev, _ = eval_ppl_parallel([model], val_loader, optimizer.n_epochs, batch_size=1, bptt=args.bptt)
+                ppl_dev, _ = eval_ppl_parallel([model], val_loader, optimizer.n_epochs)
                 ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
 
                 if hvd_rank == 0:
