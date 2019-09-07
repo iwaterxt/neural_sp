@@ -139,7 +139,7 @@ class Dataset(data.Dataset):
 
         # Reshape
         n_utts = len(concat_ids)
-        concat_ids = concat_ids[:(n_utts-1) // (bptt-1) * (bptt-1)]
+        concat_ids = concat_ids[:(n_utts-1) // ((bptt -1)*batch_size*n_customers) * ((bptt -1)*batch_size*n_customers)]
         print('Removed %d tokens / %d tokens' % (n_utts - len(concat_ids), n_utts))
         self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
 
