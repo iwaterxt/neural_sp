@@ -488,7 +488,7 @@ def main():
 
 def eval_epoch(models, dataloader, recog_params, args, epochs):
     if args.metric == 'loss':
-        _, metric = eval_ppl_parallel(models, dataloader, epochs, batch_size=args.batch_size)[1]
+        metric = eval_ppl_parallel(models, dataloader, epochs, batch_size=args.batch_size)[1]
     else:
         raise NotImplementedError(args.metric)
     return metric

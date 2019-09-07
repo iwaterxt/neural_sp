@@ -300,7 +300,8 @@ def main():
             else:
                 start_time_eval = time.time()
                 # dev
-                ppl_dev, _ = eval_ppl_parallel([model], val_loader, optimizer.n_epochs)
+                model.eval()
+                ppl_dev, _ = eval_ppl_parallel([model], val_loader, optimizer.n_epochs, batch_size=args.batch_size)
                 ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
 
                 if hvd_rank == 0:
