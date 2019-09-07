@@ -103,11 +103,6 @@ def main():
                                    num_workers = 1,
                                    distributed=True)
 
-    dev_loader = ChunkDataloader(dev_set,
-                                   batch_size=args.batch_size,
-                                   num_workers = 1,
-                                   distributed=True)
-
     eval_loader = ChunkDataloader(eval_set,
                                  batch_size=args.batch_size,
                                  num_workers=1,
@@ -307,7 +302,7 @@ def main():
                 start_time_eval = time.time()
                 # dev
                 model.eval()
-                ppl_dev, _ = eval_ppl_parallel([model], val_loader, optimizer.n_epochs, batch_size=args.batch_size)
+                ppl_dev, _ = eval_ppl_parallel([model], eval_loader, optimizer.n_epochs, batch_size=args.batch_size)
                 ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
 
                 if hvd_rank == 0:
