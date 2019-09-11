@@ -149,8 +149,7 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
         """Generate each mini-batch.
         """
-        print (index)
-        
+
         bptt = self.bptt
 
         ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
