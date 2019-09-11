@@ -27,7 +27,7 @@ from neural_sp.bin.train_utils import save_checkpoint
 from neural_sp.bin.train_utils import save_config
 from neural_sp.bin.train_utils import set_logger
 from neural_sp.bin.train_utils import set_save_path
-from neural_sp.datasets.lm import Dataset
+from neural_sp.datasets.lm_parallel import Dataset
 from neural_sp.evaluators.ppl import eval_ppl
 from neural_sp.evaluators.ppl import eval_ppl_parallel
 from neural_sp.models.data_parallel import CustomDataParallel
@@ -304,8 +304,9 @@ def main():
                 # dev
                 model.eval()
                 ppl_dev, _ = eval_ppl_parallel([model], eval_loader, optimizer.n_epochs, batch_size=args.batch_size)
+                print (ppl_dev)
                 ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
-
+                print (ppl_dev)
                 if hvd_rank == 0:
                     logger.info('PPL : %.2f' %  ppl_dev)
                     optimizer.epoch(ppl_dev)
