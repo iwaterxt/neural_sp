@@ -27,16 +27,16 @@ from neural_sp.datasets.token_converter.word import Idx2word
 from neural_sp.datasets.token_converter.word import Word2idx
 from neural_sp.datasets.token_converter.wordpiece import Idx2wp
 from neural_sp.datasets.token_converter.wordpiece import Wp2idx
-
+import torch.utils.data as data
 random.seed(1)
 np.random.seed(1)
 
 
-class Dataset(object):
+class Dataset(data.Dataset):
 
     def __init__(self, tsv_path, dict_path,
                  unit, batch_size, nlsyms=False, n_epochs=None,
-                 is_test=False, min_n_tokens=1, bptt=2,
+                 is_test=False, min_n_tokens=1, bptt=2, n_customers=1,
                  shuffle=False, backward=False, serialize=False,
                  wp_model=None, corpus=''):
         """A class for loading dataset.
@@ -71,6 +71,7 @@ class Dataset(object):
         self.unit = unit
         self.batch_size = batch_size
         self.bptt = bptt
+        self.n_customers = n_customers
         self.sos = 2
         self.eos = 2
         self.max_epoch = n_epochs
@@ -132,18 +133,28 @@ class Dataset(object):
             indices = indices[::-1]
         for i in indices:
             assert self.df['token_id'][i] != ''
-            concat_ids += [self.eos] + list(map(int, self.df['token_id'][i].split()))
+            concat_ids += [self.sos] + list(map(int, self.df['token_id'][i].split()))
         concat_ids += [self.eos]
         # NOTE: <sos> and <eos> have the same index
 
         # Reshape
         n_utts = len(concat_ids)
-        concat_ids = concat_ids[:n_utts // batch_size * batch_size]
+        concat_ids = concat_ids[:(n_utts-1) // ((bptt -1)*batch_size*n_customers) * ((bptt -1)*batch_size*n_customers)]
         print('Removed %d tokens / %d tokens' % (n_utts - len(concat_ids), n_utts))
-        self.concat_ids = np.array(concat_ids).reshape((batch_size, -1))
+        self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
 
     def __len__(self):
-        return len(self.concat_ids.reshape((-1,)))
+        return self.concat_ids.shape[0]//(self.bptt -1)
+
+    def __getitem__(self, index):
+        """Generate each mini-batch.
+        """
+
+        bptt = self.bptt
+
+        ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
+        
+        return ys
 
     @property
     def epoch_detail(self):
@@ -169,11 +180,10 @@ class Dataset(object):
 
         """
         is_new_epoch = False
+        batch_size = self.batch_size
 
-        if batch_size is None:
-            batch_size = self.batch_size
-        elif self.concat_ids.shape[0] != batch_size:
-            self.concat_ids = self.concat_ids.reshape((batch_size, -1))
+        if self.concat_ids.shape[0] != self.batch_size:
+            self.concat_ids = self.concat_ids.reshape((self.batch_size, -1))
             # NOTE: only for the first iteration during evaluation
 
         if bptt is None:
@@ -188,7 +198,7 @@ class Dataset(object):
         # NOTE: the last token in ys must be feeded as inputs in the next mini-batch
 
         # Last mini-batch
-        if (self.offset + 1) * batch_size >= len(self):
+        if (self.offset + 1) * batch_size >= self.concat_ids.shape[0]*self.concat_ids.shape[1]:
             self.offset = 0
             is_new_epoch = True
             self.epoch += 1
