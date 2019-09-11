@@ -36,7 +36,7 @@ from torch.utils.data.distributed import DistributedSampler
 
 class ChunkDataloader(DataLoader):
 
-    def __init__(self, dataset, batch_size, distributed=False, num_workers=0, timeout=1000):
+    def __init__(self, dataset, batch_size, shuffle=False, distributed=False, num_workers=0, timeout=1000):
  
         if not distributed: 
             super(ChunkDataloader, self).__init__(dataset,
@@ -46,7 +46,7 @@ class ChunkDataloader(DataLoader):
                                               collate_fn=self.collate_fn,
                                               timeout=timeout)
         else:
-            sampler = DistributedSampler(dataset, num_replicas=hvd.size(), rank=hvd.rank())
+            sampler = DistributedSampler(dataset, num_replicas=hvd.size(), rank=hvd.rank(), shuffle=shuffle)
             super(ChunkDataloader, self).__init__(dataset,
                                            batch_size=batch_size,
                                            sampler=sampler,

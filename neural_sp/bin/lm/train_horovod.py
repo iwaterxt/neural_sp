@@ -101,7 +101,8 @@ def main():
     train_loader = ChunkDataloader(train_set,
                                    batch_size=args.batch_size,
                                    num_workers = 1,
-                                   distributed=True)
+                                   distributed=True,
+                                   shuffle=True)
 
     eval_loader = ChunkDataloader(eval_set,
                                  batch_size=args.batch_size,
@@ -276,7 +277,7 @@ def main():
                     if hvd_rank == 0:
                         reporter.step(is_eval=True)
                         logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
-                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size,
+                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size/hvd.size(),
                                     loss_train, loss_dev,
                                     np.exp(loss_train), np.exp(loss_dev),
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))

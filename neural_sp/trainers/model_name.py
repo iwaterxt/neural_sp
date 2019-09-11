@@ -199,4 +199,6 @@ def set_lm_name(args):
         dir_name += '_' + str(args.min_n_tokens) + 'tokens'
     if args.adaptive_softmax:
         dir_name += '_adaptiveSM'
+    if args.n_gpus > 1:
+        dir_name += '_' + str(args.n_gpus) + 'GPU'
     return dir_name
