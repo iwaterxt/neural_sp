@@ -90,7 +90,7 @@ def main():
                               nlsyms=args.nlsyms,
                               unit=args.unit,
                               wp_model=args.wp_model,
-                              batch_size=args.batch_size,
+                              batch_size=1,
                               bptt=args.bptt,
                               n_customers=hvd.size(),
                               backward=args.backward,
@@ -102,7 +102,7 @@ def main():
                                    batch_size=args.batch_size,
                                    num_workers = 1,
                                    distributed=True,
-                                   shuffle=True)
+                                   shuffle=False)
 
     eval_loader = ChunkDataloader(eval_set,
                                  batch_size=args.batch_size,
