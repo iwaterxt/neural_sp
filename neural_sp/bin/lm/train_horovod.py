@@ -90,7 +90,7 @@ def main():
                               nlsyms=args.nlsyms,
                               unit=args.unit,
                               wp_model=args.wp_model,
-                              batch_size=1,
+                              batch_size=args.batch_size,
                               bptt=args.bptt,
                               n_customers=hvd.size(),
                               backward=args.backward,
