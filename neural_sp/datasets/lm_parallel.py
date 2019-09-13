@@ -65,6 +65,7 @@ class Dataset(data.Dataset):
         self.epoch = 0
         self.iteration = 0
         self.offset = 0
+        self.offsets = np.zeros(n_customers, dtype=int)
 
         self.set = os.path.basename(tsv_path).split('.')[0]
         self.is_test = is_test
@@ -139,12 +140,12 @@ class Dataset(data.Dataset):
 
         # Reshape
         n_utts = len(concat_ids)
-        concat_ids = concat_ids[:(n_utts-1) // ((bptt -1)*batch_size*n_customers) * ((bptt -1)*batch_size*n_customers)]
+        concat_ids = concat_ids[: n_utts // (batch_size*n_customers*(bptt-1)) * (batch_size*n_customers*(bptt-1))]
         print('Removed %d tokens / %d tokens' % (n_utts - len(concat_ids), n_utts))
-        self.concat_ids = np.array(concat_ids)#.reshape((batch_size, -1))
+        self.concat_ids = np.array(concat_ids).reshape((batch_size*n_customers, -1))
 
     def __len__(self):
-        return self.concat_ids.shape[0]//(self.bptt -1)
+        return len(self.concat_ids.reshape((-1,)))//(self.batch_size*(self.bptt-1))
 
     def __getitem__(self, index):
         """Generate each mini-batch.
@@ -152,8 +153,16 @@ class Dataset(data.Dataset):
 
         bptt = self.bptt
 
-        ys = self.concat_ids[index*(bptt-1):(index+1)*bptt-index]
-        
+        customer_index = index % self.n_customers
+
+        ys = self.concat_ids[customer_index*batch_size:customer_index*batch_size+batch_size, 
+                             self.offsets[customer_index]:self.offsets[customer_index] + bptt]
+
+        self.offsets[customer_index] += bptt - 1 
+
+        if (self.offsets[customer_index] + bptt) >= self.concat_ids.shape[1]:
+            self.offsets[customer_index] = 0
+
         return ys
 
     @property
@@ -198,7 +207,7 @@ class Dataset(data.Dataset):
         # NOTE: the last token in ys must be feeded as inputs in the next mini-batch
 
         # Last mini-batch
-        if (self.offset + 1) * batch_size >= self.concat_ids.shape[0]*self.concat_ids.shape[1]:
+        if (self.offset + bptt) * batch_size >= self.concat_ids.shape[0]*self.concat_ids.shape[1]:
             self.offset = 0
             is_new_epoch = True
             self.epoch += 1

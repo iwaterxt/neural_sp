@@ -99,13 +99,13 @@ def main():
     args.vocab = train_set.vocab
 
     train_loader = ChunkDataloader(train_set,
-                                   batch_size=args.batch_size,
+                                   batch_size=1,
                                    num_workers = 1,
                                    distributed=True,
                                    shuffle=False)
 
     eval_loader = ChunkDataloader(eval_set,
-                                 batch_size=args.batch_size,
+                                 batch_size=1,
                                  num_workers=1,
                                  distributed=True)
 
