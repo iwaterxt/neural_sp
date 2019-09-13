@@ -187,14 +187,12 @@ def main():
         # Save the conf file as a yaml file
         if hvd_rank == 0:
             save_config(vars(args), os.path.join(save_path, 'conf.yml'))
-
-        # Save the nlsyms, dictionar, and wp_model
-        if args.nlsyms:
-            shutil.copy(args.nlsyms, os.path.join(save_path, 'nlsyms.txt'))
-        shutil.copy(args.dict, os.path.join(save_path, 'dict.txt'))
-        if args.unit == 'wp':
-            shutil.copy(args.wp_model, os.path.join(save_path, 'wp.model'))
-        if hvd_rank == 0:
+            # Save the nlsyms, dictionar, and wp_model
+            if args.nlsyms:
+                shutil.copy(args.nlsyms, os.path.join(save_path, 'nlsyms.txt'))
+            shutil.copy(args.dict, os.path.join(save_path, 'dict.txt'))
+            if args.unit == 'wp':
+                shutil.copy(args.wp_model, os.path.join(save_path, 'wp.model'))
             for k, v in sorted(vars(args).items(), key=lambda x: x[0]):
                 logger.info('%s: %s' % (k, str(v)))
 
@@ -277,7 +275,7 @@ def main():
                     if hvd_rank == 0:
                         reporter.step(is_eval=True)
                         logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
-                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps*args.batch_size/data_size/hvd.size(),
+                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps/data_size,
                                     loss_train, loss_dev,
                                     np.exp(loss_train), np.exp(loss_dev),
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))
