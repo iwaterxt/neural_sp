@@ -29,7 +29,7 @@ from neural_sp.datasets.token_converter.word import Idx2word
 from neural_sp.datasets.token_converter.word import Word2idx
 from neural_sp.datasets.token_converter.wordpiece import Idx2wp
 from neural_sp.datasets.token_converter.wordpiece import Wp2idx
-import torch.utils.data as data
+
 random.seed(1)
 np.random.seed(1)
 
@@ -42,27 +42,8 @@ def count_vocab_size(dict_path):
                 vocab_count += 1
     return vocab_count
 
-def pad_list(xs, value, pad_left=False):
-    max_time = max(x.shape[0] for x in xs)
-    xs_pad=[]
-    for item in xs:
-        if pad_left:
-            if item.shape[0] != max_time:
-                mat = np.zeros((max_time, item.shape[1]), dtype="float32")
-                mat[-item.shape[1]:,:] = item
-                xs_pad.append(mat)
-            else:
-                xs_pad.append(item)
-        else:
-            if item.shape[0] != max_time:
-                mat = np.zeros((max_time, item.shape[1]), dtype="float32")
-                mat[:item.shape[0],:] = item
-                xs_pad.append(mat)
-            else:
-                xs_pad.append(item)
 
-    return xs_pad
-class Dataset(data.Dataset):
+class Dataset(object):
 
     def __init__(self, tsv_path, dict_path,
                  unit, batch_size, nlsyms=False, n_epochs=None,
@@ -121,7 +102,7 @@ class Dataset(data.Dataset):
             assert sort_by in ['input', 'output']
         self.sort_stop_epoch = sort_stop_epoch
         self.sort_by = sort_by
-        assert sort_by in ['input', 'output', 'shuffle', 'utt_id', None]
+        assert sort_by in ['input', 'output', 'shuffle', 'utt_id']
         self.dynamic_batching = dynamic_batching
         self.corpus = corpus
         self.discourse_aware = discourse_aware
@@ -294,8 +275,6 @@ class Dataset(data.Dataset):
                 df = df.sort_values(by=['ylen'], ascending=short2long)
             elif sort_by == 'shuffle':
                 df = df.reindex(np.random.permutation(self.df.index))
-            elif sort_by == None:
-                pass
 
         for i in range(1, 3):
             if getattr(self, 'df_sub' + str(i)) is not None:
@@ -309,25 +288,15 @@ class Dataset(data.Dataset):
     def __len__(self):
         return len(self.df)
 
-    def __getitem__(self, index):
-        """Generate each mini-batch.
+    @property
+    def epoch_detail(self):
+        """Percentage of the current epoch."""
+        return 1 - (len(self.df_indices) / len(self))
 
-        Args:
-            batch_size (int): size of mini-batch
-        Returns:
-            batch (dict):
-
-        """
-
-        if self.max_epoch is not None and self.epoch >= self.max_epoch:
-            raise StopIteration
-            # NOTE: max_epoch == None means infinite loop
-
-        batch = self.make_batch([index])
-
-        #self.df_indices.remove(index)
-
-        return batch
+    def reset(self):
+        """Reset data counter and offset."""
+        self.df_indices = list(self.df.index)
+        self.offset = 0
 
     def next(self, batch_size=None):
         """Generate each mini-batch.
@@ -336,6 +305,7 @@ class Dataset(data.Dataset):
             batch_size (int): size of mini-batch
         Returns:
             batch (dict):
+            is_new_epoch (bool): flag for the end of the current epoch
 
         """
         if batch_size is None:
@@ -347,7 +317,7 @@ class Dataset(data.Dataset):
 
         df_indices, is_new_epoch = self.sample_index(batch_size)
         batch = self.make_batch(df_indices)
-        '''
+
         if is_new_epoch:
             # shuffle the whole data
             if self.epoch == self.sort_stop_epoch:
@@ -363,18 +333,8 @@ class Dataset(data.Dataset):
 
             self.reset()
             self.epoch += 1
-        '''
+
         return batch, is_new_epoch
-
-    @property
-    def epoch_detail(self):
-        """Percentage of the current epoch."""
-        return 1 - (len(self.df_indices) / len(self))
-
-    def reset(self):
-        """Reset data counter and offset."""
-        self.df_indices = list(self.df.index)
-        self.offset = 0
 
     def sample_index(self, batch_size):
         """Sample data indices of mini-batch.
@@ -473,6 +433,7 @@ class Dataset(data.Dataset):
             xs = []
         else:
             xs = [kaldiio.load_mat(self.df['feat_path'][i]) for i in df_indices]
+
         # outputs
         if self.is_test:
             ys = [self.token2idx[0](self.df['text'][i]) for i in df_indices]
