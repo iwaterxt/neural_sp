@@ -185,7 +185,8 @@ def main():
             hvd.broadcast_optimizer_state(optimizer, root_rank=0)
     else:
         # Save the conf file as a yaml file
-        save_config(vars(args), os.path.join(save_path, 'conf.yml'))
+        if hvd_rank == 0:
+            save_config(vars(args), os.path.join(save_path, 'conf.yml'))
 
         # Save the nlsyms, dictionar, and wp_model
         if args.nlsyms:
