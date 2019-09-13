@@ -283,7 +283,7 @@ def main():
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))
                     start_time_step = time.time()
                 
-                pbar_epoch.update(ys_train.shape[0])
+                pbar_epoch.update(1)
                 
 
             # Save checkpoint and evaluate model per epoch
