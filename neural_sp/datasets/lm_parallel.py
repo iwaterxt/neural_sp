@@ -150,7 +150,7 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
         """Generate each mini-batch.
         """
-        
+
         bptt = self.bptt
         batch_size = self.batch_size
         customer_index = index % self.n_customers
@@ -158,6 +158,7 @@ class Dataset(data.Dataset):
         ys = self.concat_ids[customer_index*batch_size:customer_index*batch_size+batch_size, 
                              self.offsets[customer_index]:self.offsets[customer_index] + bptt]
 
+        print (str(ys[0,0])+' '+str(index))
         self.offsets[customer_index] += bptt - 1 
 
         if (self.offsets[customer_index] + bptt) >= self.concat_ids.shape[1]:
