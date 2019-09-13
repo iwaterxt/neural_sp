@@ -244,8 +244,6 @@ def main():
                 disable=not verbose) as pbar_epoch:
             # Compute loss in the training set
             for _, ys_train in enumerate(train_loader):
-                if hvd_rank == 0:
-                    print (ys_train[0,0])
                 accum_n_tokens += sum([len(y) for y in ys_train])
                 optimizer.zero_grad()
                 loss, hidden, reporter = model(ys_train, hidden, reporter)
