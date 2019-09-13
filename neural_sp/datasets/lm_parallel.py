@@ -150,11 +150,9 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
         """Generate each mini-batch.
         """
-        if bptt is None:
-            bptt = self.bptt
-        if batch_size is None:
-            batch_size = self.batch_size
-            
+        
+        bptt = self.bptt
+        batch_size = self.batch_size
         customer_index = index % self.n_customers
 
         ys = self.concat_ids[customer_index*batch_size:customer_index*batch_size+batch_size, 
