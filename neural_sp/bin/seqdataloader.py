@@ -56,7 +56,7 @@ class ChunkDataloader(DataLoader):
                                            timeout=timeout)
 
     def collate_fn(self, batch):
-
+        print (len(batch))
         return batch[0]
 
       
