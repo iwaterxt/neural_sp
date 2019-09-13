@@ -152,7 +152,7 @@ class Dataset(data.Dataset):
         """
 
         bptt = self.bptt
-
+        batch_size = self.batch_size
         customer_index = index % self.n_customers
 
         ys = self.concat_ids[customer_index*batch_size:customer_index*batch_size+batch_size, 
