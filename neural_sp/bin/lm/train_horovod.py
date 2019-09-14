@@ -199,7 +199,7 @@ def main():
         # Count total parameters
         for n in sorted(list(model.num_params_dict.keys())):
             n_params = model.num_params_dict[n]
-            if hvd.rank() == 0:
+            if hvd_rank == 0:
                 logger.info("%s %d" % (n, n_params))
         if hvd_rank == 0:
             logger.info("Total %.2f M parameters" % (model.total_parameters / 1000000))
