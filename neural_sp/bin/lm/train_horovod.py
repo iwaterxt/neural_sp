@@ -272,10 +272,10 @@ def main():
                     del loss
                     
                     duration_step = time.time() - start_time_step
-                    if hvd_rank == 0:
-                        reporter.step(is_eval=True)
-                        logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
-                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps/data_size,
+                    #if hvd_rank == 0:
+                    reporter.step(is_eval=True)
+                    logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
+                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps/data_size*hvd.size(),
                                     loss_train, loss_dev,
                                     np.exp(loss_train), np.exp(loss_dev),
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))
