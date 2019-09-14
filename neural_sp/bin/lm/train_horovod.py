@@ -302,10 +302,10 @@ def main():
                 # dev
                 model.eval()
                 ppl_dev, _ = eval_ppl_parallel([model], eval_loader, optimizer.n_epochs, batch_size=args.batch_size)
-                ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
                 print ('PPL : %.2f' %  ppl_dev)
+                ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
+                
                 if hvd_rank == 0:
-                    
                     logger.info('PPL : %.2f' %  ppl_dev)
                     optimizer.epoch(ppl_dev)
                     reporter.epoch(ppl_dev, name='perplexity')
