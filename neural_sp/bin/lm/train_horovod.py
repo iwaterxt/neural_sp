@@ -124,13 +124,13 @@ def main():
             save_path = set_save_path(save_path)  # avoid overwriting
 
     # Set logger
-    #if hvd_rank == 0:
-    logger = set_logger(os.path.join(save_path, 'train.log'),
+    if hvd_rank == 0:
+        logger = set_logger(os.path.join(save_path, 'train.log'),
                             key='training', stdout=args.stdout)
-    # Set process name
-    logger.info('PID: %s' % os.getpid())
-    logger.info('USERNAME: %s' % os.uname()[1])
-    logger.info('NUMBER_DEVICES: %s' % hvd.size())
+        # Set process name
+        logger.info('PID: %s' % os.getpid())
+        logger.info('USERNAME: %s' % os.uname()[1])
+        logger.info('NUMBER_DEVICES: %s' % hvd.size())
     setproctitle(args.job_name if args.job_name else dir_name)
     # Model setting
     model = build_lm(args, save_path)
@@ -269,8 +269,8 @@ def main():
                     del loss
                     
                     duration_step = time.time() - start_time_step
-                    #if hvd_rank == 0:
-                    logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
+                    if hvd_rank == 0:
+                        logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
                                     (optimizer.n_steps, optimizer.n_steps/data_size*hvd.size(),
                                     loss_train, loss_dev,
                                     np.exp(loss_train), np.exp(loss_dev),
