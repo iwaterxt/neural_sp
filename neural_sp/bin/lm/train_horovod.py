@@ -208,9 +208,8 @@ def main():
         # Set optimizer
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         optimizer = set_optimizer(model, args.optimizer, args.lr, args.weight_decay)
-
-        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         # Wrap optimizer by learning rate scheduler
         optimizer = LRScheduler(optimizer, args.lr,
                                 decay_type=args.lr_decay_type,
