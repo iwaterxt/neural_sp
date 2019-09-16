@@ -267,6 +267,7 @@ def main():
                     loss_dev = loss.item()
                     del loss
                     
+                    
                     duration_step = time.time() - start_time_step
                     #if hvd_rank == 0:
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
