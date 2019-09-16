@@ -199,7 +199,7 @@ def main():
         # Count total parameters
         for n in sorted(list(model.num_params_dict.keys())):
             n_params = model.num_params_dict[n]
-            if hvd_rank == 0:
+            if hvd.rank() == 0:
                 logger.info("%s %d" % (n, n_params))
         if hvd_rank == 0:
             logger.info("Total %.2f M parameters" % (model.total_parameters / 1000000))
@@ -258,10 +258,6 @@ def main():
                 loss_train = loss.item()
                 del loss
                 hidden = model.repackage_state(hidden)
-                if hvd_rank == 0:
-                    reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
-                    # NOTE: loss/acc/ppl are already added in the model
-                    reporter.step()
                 
                 if optimizer.n_steps % args.print_step == 0:
                     model.eval()
@@ -273,9 +269,8 @@ def main():
                     
                     duration_step = time.time() - start_time_step
                     #if hvd_rank == 0:
-                    reporter.step(is_eval=True)
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/ppl:%.3f(%.3f)/lr:%.5f/bs:%d (%.2f min)" %
-                                    (optimizer.n_steps, optimizer.n_epochs + optimizer.n_steps/data_size*hvd.size(),
+                                    (optimizer.n_steps, optimizer.n_steps/data_size*hvd.size(),
                                     loss_train, loss_dev,
                                     np.exp(loss_train), np.exp(loss_dev),
                                     optimizer.lr, ys_train.shape[0], duration_step / 60))
@@ -294,7 +289,6 @@ def main():
                 # Save the model
                 if hvd_rank == 0:
                     optimizer.epoch()
-                    reporter.epoch()
                     save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                         remove_old_checkpoints=args.lm_type != 'transformer')
             else:
