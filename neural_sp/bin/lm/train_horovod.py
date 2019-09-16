@@ -207,9 +207,10 @@ def main():
 
         # Set optimizer
         optimizer = set_optimizer(model, args.optimizer, args.lr, args.weight_decay)
-        optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+        optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
         # Wrap optimizer by learning rate scheduler
         optimizer = LRScheduler(optimizer, args.lr,
                                 decay_type=args.lr_decay_type,
@@ -251,7 +252,7 @@ def main():
                     if args.clip_grad_norm > 0:
                         total_norm = torch.nn.utils.clip_grad_norm_(
                             model.parameters(), args.clip_grad_norm)
-                        reporter.add_tensorboard_scalar('total_norm', total_norm)
+                        #reporter.add_tensorboard_scalar('total_norm', total_norm)
                     optimizer.step()
                     optimizer.zero_grad()
                     accum_n_tokens = 0
@@ -266,7 +267,6 @@ def main():
                     loss, _, reporter = model(ys_dev, None, reporter, is_eval=True)
                     loss_dev = loss.item()
                     del loss
-                    
                     
                     duration_step = time.time() - start_time_step
                     #if hvd_rank == 0:
@@ -303,7 +303,6 @@ def main():
                 if hvd_rank == 0:
                     logger.info('PPL : %.2f' %  ppl_dev)
                     optimizer.epoch(ppl_dev)
-                    reporter.epoch(ppl_dev, name='perplexity')
 
                 if optimizer.is_best and hvd.rank() == 0:
                     # Save the model
