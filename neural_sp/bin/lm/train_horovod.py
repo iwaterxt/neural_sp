@@ -336,7 +336,8 @@ def main():
                     optimizer._step = n_steps
                     if hvd_rank == 0:
                         logger.info('========== Convert to SGD ==========')
-
+                print (optimizer.n_epochs)
+                print (args.n_epochs)
                 if optimizer.n_epochs == args.n_epochs:
                     break
 
