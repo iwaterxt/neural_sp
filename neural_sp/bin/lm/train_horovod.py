@@ -296,12 +296,11 @@ def main():
                 # dev
                 model.eval()
                 ppl_dev, _ = eval_ppl_parallel([model], eval_loader, optimizer.n_epochs, batch_size=args.batch_size)
-                print ('PPL : %.2f' %  ppl_dev)
                 ppl_dev = hvd.allreduce(np2tensor(np.array([ppl_dev], dtype=float), hvd.local_rank()))
                 
                 if hvd_rank == 0:
                     logger.info('PPL : %.2f' %  ppl_dev)
-                    optimizer.epoch(ppl_dev)
+                optimizer.epoch(ppl_dev)
 
                 if optimizer.is_best and hvd.rank() == 0:
                     # Save the model
@@ -336,8 +335,6 @@ def main():
                     optimizer._step = n_steps
                     if hvd_rank == 0:
                         logger.info('========== Convert to SGD ==========')
-                print (optimizer.n_epochs)
-                print (args.n_epochs)
                 if optimizer.n_epochs == args.n_epochs:
                     break
 
