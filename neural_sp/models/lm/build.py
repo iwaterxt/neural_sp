@@ -15,7 +15,7 @@ from neural_sp.models.lm.rnnlm import RNNLM
 from neural_sp.models.lm.transformerlm import TransformerLM
 
 
-def build_lm(args, save_path=None):
+def build_lm(args, save_path=None, wordlm=False, lm_dict_path=None, asr_dict_path=None):
     """Select LM class.
 
     Args:
