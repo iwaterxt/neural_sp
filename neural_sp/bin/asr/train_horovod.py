@@ -394,7 +394,7 @@ def main():
                 if hvd_rank == 0:
                     reporter.step(is_eval=True)
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                                (optimizer.n_steps, optimizer.n_steps*args.batch_size/data_size,
+                                (optimizer.n_steps, optimizer.n_steps*args.batch_size/data_size*hvd.size(),
                                 loss_train, loss_dev,
                                 optimizer.lr, len(batch_train['utt_ids']),
                                 xlen, ylen, duration_step / 60))
@@ -414,8 +414,8 @@ def main():
                         (optimizer.n_epochs + 1, duration_epoch / 60))
 
         if optimizer.n_epochs + 1 < args.eval_start_epoch:
+            optimizer.epoch()
             if hvd_rank == 0:
-                optimizer.epoch()
                 reporter.epoch()
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=not noam)
@@ -429,9 +429,8 @@ def main():
             loss_dev = metric_dev.item()
             if hvd_rank == 0:
                 logger.info('Loss : %.2f %%' % (loss_dev))
-                optimizer.epoch(loss_dev)
                 reporter.epoch(loss_dev)
-
+            optimizer.epoch(loss_dev)
             if optimizer.is_best and hvd.rank() == 0:
                 # Save the model
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
