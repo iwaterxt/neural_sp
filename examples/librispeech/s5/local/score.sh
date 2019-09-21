@@ -3,7 +3,7 @@
 # Copyright 2018 Kyoto University (Hirofumi Inaguma)
 #  Apache 2.0  (http://www.apache.org/licenses/LICENSE-2.0)
 
-model=
+model=/aifs/users/tx078/tools/neural_sp_parallel/examples/librispeech/s5/exp/librispeech/asr/train_960_wpbpe30000/blstm512H5L_drop8_lstm1024H1L_location_adam_lr0.002_bs30_ss0.2_ls0.1_4GPU/model.epoch-17
 model1=
 model2=
 model3=
@@ -12,7 +12,7 @@ gpu=
 stdout=false
 
 ### path to save preproecssed data
-data=/n/sd3/inaguma/corpus/librispeech
+data=/aifs/users/tx078/data/asr/datas/librispeech
 
 unit=
 metric=edit_distance

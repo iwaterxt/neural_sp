@@ -1,8 +1,8 @@
 export NEURALSP_ROOT=$PWD/../../..
-export TOOL=/home/inaguma/tool/neural_sp
+export TOOL=/aifs/users/tx078/tools/neural_sp_parallel/tools
 export CONDA=$TOOL/miniconda
 # export KALDI_ROOT=$TOOL/kaldi
-export KALDI_ROOT="/n/sd8/inaguma/kaldi"
+export KALDI_ROOT="/aifs/users/tx078/tools/kaldi"
 
 # Kaldi
 [ -f $KALDI_ROOT/tools/env.sh ] && . $KALDI_ROOT/tools/env.sh
@@ -12,15 +12,13 @@ export PATH=$NEURALSP_ROOT/utils:$PWD/utils/:$KALDI_ROOT/tools/sctk/bin/:$TOOL/s
 export LC_ALL=C
 
 ### Python
-source $CONDA/etc/profile.d/conda.sh && conda deactivate && conda activate
+#source $CONDA/etc/profile.d/conda.sh && conda deactivate && conda activate
 export PYTHONDONTWRITEBYTECODE=1
 export OMP_NUM_THREADS=1
-
+export PYTHONPATH=${PYTHONPATH}:/aifs/users/tx078/tools/neural_sp_parallel
+export PYTHONIOENCODING=UTF-8
 ### CUDA
-CUDAROOT=/usr/local/cuda
-NCCL_ROOT=/usr/local/nccl
-export CPATH=$NCCL_ROOT/include:$CPATH
-export LD_LIBRARY_PATH=$NCCL_ROOT/lib/:$CUDAROOT/lib64:$LD_LIBRARY_PATH
-export LIBRARY_PATH=$NCCL_ROOT/lib/:$LIBRARY_PATH
+CUDAROOT=/aifs/users/tx078/softs/cuda
+export LD_LIBRARY_PATH=$CUDAROOT/lib64:$LD_LIBRARY_PATH
 export CUDA_HOME=$CUDAROOT
 export CUDA_PATH=$CUDAROOT
