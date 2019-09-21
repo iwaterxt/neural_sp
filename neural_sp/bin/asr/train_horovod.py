@@ -394,7 +394,7 @@ def main():
                 if hvd_rank == 0:
                     reporter.step(is_eval=True)
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
-                                (optimizer.n_steps, optimizer.n_steps*args.batch_size/data_size*hvd.size(),
+                                (optimizer.n_steps, optimizer.n_steps*args.batch_size/(data_size/hvd.size()),
                                 loss_train, loss_dev,
                                 optimizer.lr, len(batch_train['utt_ids']),
                                 xlen, ylen, duration_step / 60))
