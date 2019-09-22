@@ -262,7 +262,8 @@ def main():
 
     else:
         # Save the conf file as a yaml file
-        save_config(vars(args), os.path.join(save_path, 'conf.yml'))
+        if hvd_rank == 0:
+            save_config(vars(args), os.path.join(save_path, 'conf.yml'))
         if args.lm_fusion:
             save_config(args.lm_conf, os.path.join(save_path, 'conf_lm.yml'))
 
