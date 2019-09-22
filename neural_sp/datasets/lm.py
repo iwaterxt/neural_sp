@@ -98,7 +98,7 @@ class Dataset(object):
             raise ValueError(unit)
 
         # Load dataset tsv file
-        self.df = pd.read_csv(tsv_path, encoding='utf-8', delimiter='\t')
+        self.df = pd.read_csv(tsv_path, encoding='utf-8', delimiter='\t', low_memory=False)
         self.df = self.df.loc[:, ['utt_id', 'speaker', 'feat_path',
                                   'xlen', 'xdim', 'text', 'token_id', 'ylen', 'ydim']]
 
