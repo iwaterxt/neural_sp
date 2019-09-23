@@ -302,7 +302,7 @@ class Dataset(data.Dataset):
             if getattr(self, 'df_sub' + str(i)) is not None:
                 setattr(self, 'df_sub' + str(i),
                         getattr(self, 'df_sub' + str(i)).reindex(df.index).reset_index())
-        print (df[0])
+
         # Re-indexing
         self.df = df.reset_index()
         self.df_indices = list(self.df.index)
