@@ -175,7 +175,7 @@ class Dataset(data.Dataset):
                 setattr(self, 'vocab_sub' + str(i), -1)
 
         # Load dataset tsv file
-        df = pd.read_csv(tsv_path, encoding='utf-8', delimiter='\t', dtype={'utt_id': 'str'})
+        df = pd.read_csv(tsv_path, encoding='utf-8', delimiter='\t', quoting=csv.QUOTE_NONE, dtype={'utt_id': 'str'})
         df = df.loc[:, ['utt_id', 'speaker', 'feat_path',
                                   'xlen', 'xdim', 'text', 'token_id', 'ylen', 'ydim']]
         for i in range(1, 3):
