@@ -331,7 +331,7 @@ def main():
     data_size = len(train_set)
     while True:
       model.train()
-      with tqdm(total=data_size/hvd.size(),
+      with tqdm(total=data_size//hvd.size(),
               desc='Train Epoch     #{}'.format(optimizer.n_epochs + 1),
               disable=not verbose) as pbar_epoch:
         # Compute loss in the training set
