@@ -319,7 +319,7 @@ class Dataset(data.Dataset):
             batch (dict):
 
         """
-
+        print (index)
         if self.max_epoch is not None and self.epoch >= self.max_epoch:
             raise StopIteration
             # NOTE: max_epoch == None means infinite loop
