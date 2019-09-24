@@ -156,7 +156,7 @@ def main():
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
     train_loader = SeqDataloader(train_set, 
                                  batch_size=args.batch_size,
-                                 num_workers = 2,
+                                 num_workers = 1,
                                  distributed=True,
                                  num_stacks=args.n_stacks,
                                  num_splices=args.n_splices,
@@ -165,7 +165,7 @@ def main():
                                 )
     val_loader = SeqDataloader(dev_set, 
                                batch_size=args.batch_size,
-                               num_workers = 2,
+                               num_workers = 1,
                                distributed=True,
                                num_stacks=args.n_stacks,
                                num_splices=args.n_splices,
@@ -216,7 +216,7 @@ def main():
     if args.resume :
         # Set optimizer
         epochs = int(args.resume.split('-')[-1])
-        optimizer = set_optimizer(model, 'sgd' if epoch > conf['convert_to_sgd_epoch'] else conf['optimizer'],
+        optimizer = set_optimizer(model, 'sgd' if epochs > conf['convert_to_sgd_epoch'] else conf['optimizer'],
                                   conf['lr'], conf['weight_decay'])
 
         if hvd_rank == 0 :
