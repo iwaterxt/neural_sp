@@ -224,6 +224,7 @@ def main():
 
         #broadcast
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+        noam = 'transformer' in args.enc_type or args.dec_type == 'transformer'
         optimizer = LRScheduler(optimizer, args.lr,
                                 decay_type=args.lr_decay_type,
                                 decay_start_epoch=args.lr_decay_start_epoch,
