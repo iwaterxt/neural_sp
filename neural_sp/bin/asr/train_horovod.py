@@ -224,6 +224,15 @@ def main():
 
         #broadcast
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+
+        if hvd_rank == 0 :
+            # Restore the last saved model
+            model, _ = load_checkpoint(model, args.resume, resume=True)
+
+
+        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+        # Wrap optimizer by learning rate scheduler
         noam = 'transformer' in args.enc_type or args.dec_type == 'transformer'
         optimizer = LRScheduler(optimizer, args.lr,
                                 decay_type=args.lr_decay_type,
@@ -236,16 +245,6 @@ def main():
                                 model_size=args.d_model,
                                 factor=args.lr_factor,
                                 noam=noam)
-        if hvd_rank == 0 :
-            # Restore the last saved model
-            model, _ = load_checkpoint(model, args.resume, resume=True)
-
-
-        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
-        # Wrap optimizer by learning rate scheduler
-        #noam = 'transformer' in conf['enc_type'] or conf['dec_type'] == 'transformer'
-
 
         # Resume between convert_to_sgd_epoch -1 and convert_to_sgd_epoch
         if epochs == conf['convert_to_sgd_epoch']:
