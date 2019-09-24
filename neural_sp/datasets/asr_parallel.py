@@ -324,7 +324,7 @@ class Dataset(data.Dataset):
             # NOTE: max_epoch == None means infinite loop
 
         batch = self.make_batch([index])
-        #print (self.df['utt_id'][index])
+        print (self.df['utt_id'][index])
         #self.df_indices.remove(index)
 
         return batch
