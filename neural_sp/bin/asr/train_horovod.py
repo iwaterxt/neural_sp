@@ -218,7 +218,18 @@ def main():
         epochs = int(args.resume.split('-')[-1])
         optimizer = set_optimizer(model, 'sgd' if epochs > conf['convert_to_sgd_epoch'] else conf['optimizer'],
                                   conf['lr'], conf['weight_decay'])
-
+        
+        optimizer = LRScheduler(optimizer, conf['lr'],
+                                decay_type=conf['lr_decay_type'],
+                                decay_start_epoch=conf['lr_decay_start_epoch'],
+                                decay_rate=conf['lr_decay_rate'],
+                                decay_patient_n_epochs=conf['lr_decay_patient_n_epochs'],
+                                early_stop_patient_n_epochs=conf['early_stop_patient_n_epochs'],
+                                warmup_start_lr=conf['warmup_start_lr'],
+                                warmup_n_steps=conf['warmup_n_steps'],
+                                model_size=conf['d_model'],
+                                factor=conf['lr_factor'],
+                                noam=noam)
         if hvd_rank == 0 :
             # Restore the last saved model
             model, optimizer = load_checkpoint(model, args.resume, optimizer, resume=True)
@@ -231,17 +242,7 @@ def main():
         # Wrap optimizer by learning rate scheduler
         #noam = 'transformer' in conf['enc_type'] or conf['dec_type'] == 'transformer'
 
-        optimizer = LRScheduler(optimizer, conf['lr'],
-                                decay_type=conf['lr_decay_type'],
-                                decay_start_epoch=conf['lr_decay_start_epoch'],
-                                decay_rate=conf['lr_decay_rate'],
-                                decay_patient_n_epochs=conf['lr_decay_patient_n_epochs'],
-                                early_stop_patient_n_epochs=conf['early_stop_patient_n_epochs'],
-                                warmup_start_lr=conf['warmup_start_lr'],
-                                warmup_n_steps=conf['warmup_n_steps'],
-                                model_size=conf['d_model'],
-                                factor=conf['lr_factor'],
-                                noam=noam)
+
         # Resume between convert_to_sgd_epoch -1 and convert_to_sgd_epoch
         if epochs == conf['convert_to_sgd_epoch']:
             n_epochs = optimizer.n_epochs
