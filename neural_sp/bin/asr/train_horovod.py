@@ -218,7 +218,12 @@ def main():
         epochs = int(args.resume.split('-')[-1])
         optimizer = set_optimizer(model, 'sgd' if epochs > conf['convert_to_sgd_epoch'] else conf['optimizer'],
                                   conf['lr'], conf['weight_decay'])
+
+
+
         
+        #broadcast
+        optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
         optimizer = LRScheduler(optimizer, conf['lr'],
                                 decay_type=conf['lr_decay_type'],
                                 decay_start_epoch=conf['lr_decay_start_epoch'],
@@ -234,8 +239,7 @@ def main():
             # Restore the last saved model
             model, optimizer = load_checkpoint(model, args.resume, optimizer, resume=True)
 
-        #broadcast
-        optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
+
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
