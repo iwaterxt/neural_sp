@@ -238,8 +238,7 @@ def main():
                                 noam=noam)
         if hvd_rank == 0 :
             # Restore the last saved model
-            model, optimizer = load_checkpoint(model, args.resume, optimizer, resume=True)
-
+            model, _ = load_checkpoint(model, args.resume, resume=True)
 
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
