@@ -18,6 +18,7 @@ import time
 
 from neural_sp.bin.args_asr import parse
 from neural_sp.bin.train_utils import load_checkpoint
+from neural_sp.bin.train_utils import load_checkpoint_lm
 from neural_sp.bin.train_utils import load_config
 from neural_sp.bin.train_utils import set_logger
 from neural_sp.datasets.asr import Dataset
