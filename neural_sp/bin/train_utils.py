@@ -144,8 +144,6 @@ def load_checkpoint(model, checkpoint_path, optimizer=None, resume=False):
     # Restore parameters
     logger.info("=> Loading checkpoint (epoch:%d): %s" % (epoch + 1, checkpoint_path))
     model.load_state_dict(checkpoint['state_dict'])
-
-
     # Restore optimizer
     if resume:
         if optimizer is not None:
@@ -160,6 +158,53 @@ def load_checkpoint(model, checkpoint_path, optimizer=None, resume=False):
 
     return model, optimizer
 
+def load_checkpoint_lm(model, checkpoint_path, optimizer=None, resume=False):
+    """Load checkpoint.
+
+    Args:
+        model (torch.nn.Module):
+        checkpoint_path (str): path to the saved model (model..epoch-*)
+        epoch (int): negative values mean the offset from the last saved model
+        optimizer ():
+        resume (bool): if True, restore the save optimizer
+    Returns:
+        model (torch.nn.Module):
+        optimizer ():
+
+    """
+    if not os.path.isfile(checkpoint_path):
+        raise ValueError('There is no checkpoint')
+
+    epoch = int(os.path.basename(checkpoint_path).split('-')[-1]) - 1
+
+    if os.path.isfile(checkpoint_path):
+        checkpoint = torch.load(checkpoint_path, map_location=lambda storage, loc: storage)
+    else:
+        raise ValueError("No checkpoint found at %s" % checkpoint_path)
+
+    # Restore parameters
+    logger.info("=> Loading checkpoint (epoch:%d): %s" % (epoch + 1, checkpoint_path))
+    #model.load_state_dict(checkpoint['state_dict'])
+
+    from collections import OrderedDict
+    new_state_dict = OrderedDict()
+    for k, v in checkpoint['state_dict'].items():
+        name = k[7:]
+        new_state_dict[name] = v
+    model.load_state_dict(new_state_dict)
+    # Restore optimizer
+    if resume:
+        if optimizer is not None:
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            for state in optimizer.state.values():
+                for k, v in state.items():
+                    if torch.is_tensor(v):
+                        state[k] = v.cuda(0)
+                        # state[k] = v.cuda(self.device_id)
+                        # TODO(hirofumi): Fix for multi-GPU
+            # NOTE: from https://github.com/pytorch/pytorch/issues/2830
+
+    return model, optimizer
 
 def save_checkpoint(model, save_path, optimizer, epoch, remove_old_checkpoints=True):
     """Save checkpoint.

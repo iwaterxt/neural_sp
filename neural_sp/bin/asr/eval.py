@@ -107,7 +107,7 @@ def main():
                     lm = build_lm(args_lm, wordlm=args.recog_wordlm,
                                   lm_dict_path=os.path.join(os.path.dirname(args.recog_lm), 'dict.txt'),
                                   asr_dict_path=os.path.join(dir_name, 'dict.txt'))
-                    lm = load_checkpoint(lm, args.recog_lm)[0]
+                    lm = load_checkpoint_lm(lm, args.recog_lm)[0]
                     if args_lm.backward:
                         model.lm_bwd = lm
                     else:
