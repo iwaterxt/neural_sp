@@ -143,14 +143,9 @@ def load_checkpoint(model, checkpoint_path, optimizer=None, resume=False):
 
     # Restore parameters
     logger.info("=> Loading checkpoint (epoch:%d): %s" % (epoch + 1, checkpoint_path))
-    #model.load_state_dict(checkpoint['state_dict'])
+    model.load_state_dict(checkpoint['state_dict'])
 
-    from collections import OrderedDict
-    new_state_dict = OrderedDict()
-    for k, v in checkpoint['state_dict'].items():
-        name = k[7:]
-        new_state_dict[name] = v
-    model.load_state_dict(new_state_dict)
+
     # Restore optimizer
     if resume:
         if optimizer is not None:
