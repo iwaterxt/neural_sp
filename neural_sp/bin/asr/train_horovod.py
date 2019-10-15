@@ -440,8 +440,8 @@ def main():
                 # Save the model
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=not noam)
-            else:
-                model = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
+            #elif hvd.rank():
+            #    model = load_checkpoint(model, save_path+'model.epoch-'+str(optimizer.best_epochs))
                 # start scheduled sampling
             if args.ss_prob > 0:
                 model.scheduled_sampling_trigger()

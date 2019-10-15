@@ -52,7 +52,7 @@ class LRScheduler(object):
 
         self._step = 0
         self._epoch = 0
-        self._best_epoch = 0
+        self._best_epochs = 0
 
         # for warmup
         if noam:
@@ -141,7 +141,7 @@ class LRScheduler(object):
         if metric is not None and metric < self.metric_best:
             self.metric_best = metric
             self._is_best = True
-            self._best_epoch = self._epoch
+            self._best_epochs = self._epoch
             logger.info('||||| Best Score |||||')
 
         if self._epoch >= self.decay_start_epoch:
