@@ -441,6 +441,7 @@ def main():
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=not noam)
             elif hvd.rank():
+                print (save_path+'model.epoch-'+str(optimizer.best_epochs))
                 model = load_checkpoint(model, save_path+'model.epoch-'+str(optimizer.best_epochs))
                 hvd.broadcast_parameters(model.state_dict(), root_rank=0)
                 # start scheduled sampling
