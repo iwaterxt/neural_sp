@@ -443,7 +443,7 @@ def main():
                                         remove_old_checkpoints=not noam)
                 else:
                     # Load best model
-                    model = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
+                    model, _ = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
             hvd.broadcast_parameters(model.state_dict(), root_rank=0)
                 # start scheduled sampling
             if args.ss_prob > 0:
