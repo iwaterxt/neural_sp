@@ -248,15 +248,8 @@ def main():
 
         # Resume between convert_to_sgd_epoch -1 and convert_to_sgd_epoch
         if epochs == conf['convert_to_sgd_epoch']:
-            n_epochs = optimizer.n_epochs
-            n_steps = optimizer.n_steps
+
             optimizer = set_optimizer(model, 'sgd', args.lr, conf['weight_decay'])
-            optimizer = LRScheduler(optimizer, args.lr,
-                                    decay_type='always',
-                                    decay_start_epoch=0,
-                                    decay_rate=0.5)
-            optimizer._epoch = n_epochs
-            optimizer._step = n_steps
             if hvd_rank == 0:
                 logger.info('========== Convert to SGD ==========')
             #broadcast
@@ -264,6 +257,10 @@ def main():
 
             hvd.broadcast_parameters(model.state_dict(), root_rank=0)
             hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+            optimizer = LRScheduler(optimizer, args.lr,
+                                    decay_type='always',
+                                    decay_start_epoch=0,
+                                    decay_rate=0.5)
 
     else:
         # Save the conf file as a yaml file
