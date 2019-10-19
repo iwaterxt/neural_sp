@@ -438,6 +438,7 @@ def main():
         if optimizer.n_epochs == args.convert_to_sgd_epoch:
             n_epochs = optimizer.n_epochs
             n_steps = optimizer.n_steps
+            model, _ = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
             optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
             optimizer = hvd.DistributedOptimizer(
                             optimizer, named_parameters=model.named_parameters(),
