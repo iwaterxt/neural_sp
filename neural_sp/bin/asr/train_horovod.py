@@ -217,14 +217,13 @@ def main():
         # Set optimizer
         epochs = int(args.resume.split('-')[-1])
         #optimizer = set_optimizer(model, 'sgd' if epochs >= conf['convert_to_sgd_epoch'] else conf['optimizer'],
-        #                          conf['lr'], conf['weight_decay'])
+
+        model, _ = load_checkpoint(model, args.resume, resume=True)
         optimizer = set_optimizer(model, 'sgd',conf['lr'], conf['weight_decay'])
         #broadcast
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
 
-        if hvd_rank == 0 :
-            # Restore the last saved model
-            model, _ = load_checkpoint(model, args.resume, resume=True)
+
 
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
