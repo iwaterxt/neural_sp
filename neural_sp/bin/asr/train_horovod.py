@@ -216,8 +216,9 @@ def main():
     if args.resume :
         # Set optimizer
         epochs = int(args.resume.split('-')[-1])
-        optimizer = set_optimizer(model, 'sgd' if epochs >= conf['convert_to_sgd_epoch'] else conf['optimizer'],
-                                  conf['lr'], conf['weight_decay'])
+        #optimizer = set_optimizer(model, 'sgd' if epochs >= conf['convert_to_sgd_epoch'] else conf['optimizer'],
+        #                          conf['lr'], conf['weight_decay'])
+        optimizer = set_optimizer(model, 'sgd',conf['lr'], conf['weight_decay'])
         #broadcast
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
 
