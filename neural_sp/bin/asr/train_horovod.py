@@ -257,7 +257,8 @@ def main():
                                     decay_rate=0.5)
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
-            logger.info('========== Convert to SGD ==========')
+            if hvd_rank == 0:
+                logger.info('========== Convert to SGD ==========')
             #broadcast
             optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
 
