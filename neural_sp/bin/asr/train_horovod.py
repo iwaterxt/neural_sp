@@ -444,13 +444,19 @@ def main():
                             compression=hvd.Compression.none,
                             backward_passes_per_step=batch_per_allreduce)
 
-
             hvd.broadcast_parameters(model.state_dict(), root_rank=0)
             hvd.broadcast_optimizer_state(optimizer, root_rank=0)
             optimizer = LRScheduler(optimizer, args.lr,
-                                    decay_type='always',
-                                    decay_start_epoch=0,
-                                    decay_rate=0.5)
+                                decay_type=args.lr_decay_type,
+                                decay_start_epoch=args.lr_decay_start_epoch,
+                                decay_rate=args.lr_decay_rate,
+                                decay_patient_n_epochs=args.lr_decay_patient_n_epochs,
+                                early_stop_patient_n_epochs=args.early_stop_patient_n_epochs,
+                                warmup_start_lr=args.warmup_start_lr,
+                                warmup_n_steps=args.warmup_n_steps,
+                                model_size=args.d_model,
+                                factor=args.lr_factor,
+                                noam=noam)
 
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
