@@ -346,6 +346,8 @@ class Dataset(data.Dataset):
 
         df_indices, is_new_epoch = self.sample_index(batch_size)
         batch = self.make_batch(df_indices)
+        if is_new_epoch:
+            self.reset()
         '''
         if is_new_epoch:
             # shuffle the whole data
