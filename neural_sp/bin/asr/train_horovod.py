@@ -57,6 +57,7 @@ def main():
 
     args = parse()
 
+
     hvd.init()
     torch.cuda.set_device(hvd.local_rank())
     hvd_rank = hvd.rank()
@@ -147,6 +148,8 @@ def main():
                               is_test=True)]
 
     args.vocab = train_set.vocab
+    args.vocab_sub1 = train_set.vocab_sub1
+    args.vocab_sub2 = train_set.vocab_sub2
     args.input_dim = train_set.input_dim
     # Horovod: use DistributedSampler to partition data among workers. Manually specify
     # `num_replicas=hvd.size()` and `rank=hvd.rank()`.
