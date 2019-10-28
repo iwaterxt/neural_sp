@@ -319,18 +319,12 @@ def main():
                     if args.clip_grad_norm > 0:
                         total_norm = torch.nn.utils.clip_grad_norm_(
                             model.parameters(), args.clip_grad_norm)
-                        reporter.add_tensorboard_scalar('total_norm', total_norm)
                     optimizer.step()
-                    
                     optimizer.zero_grad()
 
                     accum_n_tokens = 0
                 loss_train = loss.item()
                 del loss
-            if hvd_rank == 0:
-                reporter.add_tensorboard_scalar('learning_rate', optimizer.lr)
-                # NOTE: loss/acc/ppl are already added in the model
-                reporter.step()
 
             if optimizer.n_steps % args.print_step == 0:
                 # Compute loss in the dev set
@@ -360,7 +354,6 @@ def main():
                     ylen = max(len(y) for y in batch_train['ys_sub1'])
 
                 if hvd_rank == 0:
-                    reporter.step(is_eval=True)
                     logger.info("step:%d(ep:%.2f) loss:%.3f(%.3f)/lr:%.5f/bs:%d/xlen:%d/ylen:%d (%.2f min)" %
                                 (optimizer.n_steps, optimizer.n_steps*args.batch_size/(data_size/hvd.size()),
                                 loss_train, loss_dev,
@@ -371,7 +364,6 @@ def main():
 
             # Save fugures of loss and accuracy
             if optimizer.n_steps % (args.print_step * 10) == 0 and hvd.rank() == 0:
-                reporter.snapshot()
                 model.plot_attention()
             start_time_step = time.time()
         # reset dev set
@@ -385,7 +377,6 @@ def main():
         if optimizer.n_epochs + 1 < args.eval_start_epoch:
             optimizer.epoch()
             if hvd_rank == 0:
-                reporter.epoch()
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                     remove_old_checkpoints=not noam)
         else:
@@ -397,7 +388,6 @@ def main():
             loss_dev = metric_dev.item()
             if hvd_rank == 0:
                 logger.info('Loss : %.2f %%' % (loss_dev))
-                reporter.epoch(loss_dev)
             optimizer.epoch(loss_dev)
             if hvd.rank() == 0:
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
@@ -450,9 +440,6 @@ def main():
     duration_train = time.time() - start_time_train
     if hvd_rank == 0:
         logger.info('Total time: %.2f hour' % (duration_train / 3600))
-
-    reporter.tf_writer.close()
-    #pbar_epoch.close()
 
     return save_path
 
