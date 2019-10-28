@@ -56,8 +56,6 @@ torch.cuda.manual_seed_all(1)
 def main():
 
     args = parse()
-
-
     hvd.init()
     torch.cuda.set_device(hvd.local_rank())
     hvd_rank = hvd.rank()
@@ -223,8 +221,6 @@ def main():
         optimizer = hvd.DistributedOptimizer(optimizer, named_parameters=model.named_parameters())
 
 
-
-
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         # Wrap optimizer by learning rate scheduler
@@ -248,10 +244,6 @@ def main():
         if args.lm_fusion:
             save_config(args.lm_conf, os.path.join(save_path, 'conf_lm.yml'))
 
-        # Save the nlsyms, dictionar, and wp_model
-        if args.nlsyms:
-            shutil.copy(args.nlsyms, os.path.join(save_path, 'nlsyms.txt'))
-
         if hvd_rank == 0:
             for k, v in sorted(vars(args).items(), key=lambda x: x[0]):
                 logger.info('%s: %s' % (k, str(v)))
@@ -266,13 +258,10 @@ def main():
         # Set optimizer
         optimizer = set_optimizer(model, args.optimizer, args.lr, args.weight_decay)
 
-        #compression = hvd.Compression.fp16 if args.f16_allreduce else hvd.Compression.none
-
         optimizer = hvd.DistributedOptimizer(
                         optimizer, named_parameters=model.named_parameters(),
                         compression=hvd.Compression.none,
                         backward_passes_per_step=batch_per_allreduce)
-
 
         hvd.broadcast_parameters(model.state_dict(), root_rank=0)
         hvd.broadcast_optimizer_state(optimizer, root_rank=0)
@@ -388,8 +377,9 @@ def main():
                 reporter.snapshot()
                 model.plot_attention()
             start_time_step = time.time()
+        # reset dev set
+        dev_set.reset()
         # Save checkpoint and evaluate model per epoch
-        
         duration_epoch = time.time() - start_time_epoch
         if hvd_rank == 0:
             logger.info('========== EPOCH:%d (%.2f min) ==========' %
@@ -404,27 +394,19 @@ def main():
         else:
             start_time_eval = time.time()
             # dev
-
             metric_dev = eval_epoch([model], val_loader, recog_params, args, optimizer.n_epochs + 1)
-
             metric_dev = hvd.allreduce(np2tensor(np.array([metric_dev], dtype=float), hvd.local_rank()))
+
             loss_dev = metric_dev.item()
             if hvd_rank == 0:
                 logger.info('Loss : %.2f %%' % (loss_dev))
                 reporter.epoch(loss_dev)
             optimizer.epoch(loss_dev)
             if hvd.rank() == 0:
-                if optimizer.is_best :
-                    # Save the model
-                    save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
+                save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
                                         remove_old_checkpoints=not noam)
-                else:
-                    # Load best model
-                    model, _ = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
-            hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-                # start scheduled sampling
-            if args.ss_prob > 0:
-                model.scheduled_sampling_trigger()
+            if not optimizer.is_best :
+                model, _ = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
 
             duration_eval = time.time() - start_time_eval
             if hvd_rank == 0:
@@ -437,7 +419,6 @@ def main():
         if optimizer.n_epochs == args.convert_to_sgd_epoch:
             n_epochs = optimizer.n_epochs
             n_steps = optimizer.n_steps
-            model, _ = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
             optimizer = set_optimizer(model, 'sgd', args.lr, args.weight_decay)
             optimizer = hvd.DistributedOptimizer(
                             optimizer, named_parameters=model.named_parameters(),
