@@ -413,7 +413,7 @@ def main():
                             backward_passes_per_step=batch_per_allreduce)
 
             #hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-            hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+            #hvd.broadcast_optimizer_state(optimizer, root_rank=0)
             optimizer = LRScheduler(optimizer, args.lr,
                                 decay_type=args.lr_decay_type,
                                 decay_start_epoch=args.lr_decay_start_epoch,
