@@ -22,6 +22,8 @@ import time
 import torch
 import horovod.torch as hvd
 from tqdm import tqdm
+from mpi4py import MPI
+            
 
 from neural_sp.bin.args_asr import parse
 from neural_sp.bin.train_utils import load_checkpoint
@@ -319,6 +321,7 @@ def main():
                     if args.clip_grad_norm > 0:
                         total_norm = torch.nn.utils.clip_grad_norm_(
                             model.parameters(), args.clip_grad_norm)
+                    MPI.COMM_WORLD.Barrier()
                     optimizer.step()
                     optimizer.zero_grad()
 
@@ -425,8 +428,7 @@ def main():
                                 model_size=args.d_model,
                                 factor=args.lr_factor,
                                 noam=noam)
-            from mpi4py import MPI
-            MPI.COMM_WORLD.Barrier()
+
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
             if hvd_rank == 0:
