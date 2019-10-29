@@ -412,8 +412,8 @@ def main():
                             compression=hvd.Compression.none,
                             backward_passes_per_step=batch_per_allreduce)
 
-            #hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-            #hvd.broadcast_optimizer_state(optimizer, root_rank=0)
+            hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+            hvd.broadcast_optimizer_state(optimizer, root_rank=0)
             optimizer = LRScheduler(optimizer, args.lr,
                                 decay_type=args.lr_decay_type,
                                 decay_start_epoch=args.lr_decay_start_epoch,
@@ -425,7 +425,8 @@ def main():
                                 model_size=args.d_model,
                                 factor=args.lr_factor,
                                 noam=noam)
-
+            from mpi4py import MPI
+            MPI.COMM_WORLD.Barrier()
             optimizer._epoch = n_epochs
             optimizer._step = n_steps
             if hvd_rank == 0:
