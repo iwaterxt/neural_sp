@@ -392,7 +392,7 @@ def main():
             optimizer.epoch(loss_dev)
             if hvd.rank() == 0:
                 save_checkpoint(model, save_path, optimizer, optimizer.n_epochs,
-                                        remove_old_checkpoints=not noam)
+                                        remove_old_checkpoints=False)
             if not optimizer.is_best :
                 model, _ = load_checkpoint(model, save_path+'/model.epoch-'+str(optimizer.best_epochs))
 
