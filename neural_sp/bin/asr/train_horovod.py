@@ -190,7 +190,7 @@ def main():
     else:
         dir_name = set_asr_model_name(args, subsample_factor)
         save_path = mkdir_join(args.model_save_dir, '_'.join(os.path.basename(args.train_set).split('.')[:-1]), dir_name)
-        save_path = set_save_path(save_path)  # avoid overwriting
+        #save_path = set_save_path(save_path)  # avoid overwriting
     # Set logger
     if hvd_rank == 0:
         logger = set_logger(os.path.join(save_path, 'train.log'),
@@ -256,13 +256,13 @@ def main():
         # Set optimizer
         optimizer = set_optimizer(model, args.optimizer, args.lr, args.weight_decay)
 
-        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
-        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
-
         optimizer = hvd.DistributedOptimizer(
                         optimizer, named_parameters=model.named_parameters(),
                         compression=hvd.Compression.none,
                         backward_passes_per_step=batch_per_allreduce)
+
+        hvd.broadcast_parameters(model.state_dict(), root_rank=0)
+        hvd.broadcast_optimizer_state(optimizer, root_rank=0)
         # Wrap optimizer by learning rate scheduler
         noam = 'transformer' in args.enc_type or args.dec_type == 'transformer'
         optimizer = LRScheduler(optimizer, args.lr,
