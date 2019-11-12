@@ -17,6 +17,7 @@ from tqdm import tqdm
 
 from neural_sp.evaluators.edit_distance import compute_wer
 from neural_sp.utils import mkdir_join
+from neural_sp.utils import token_merge
 
 logger = logging.getLogger("decoding").getChild('character')
 
@@ -87,7 +88,7 @@ def eval_char(models, dataset, recog_params, epoch,
 
             for b in range(len(batch['xs'])):
                 ref = batch['text'][b]
-                hyp = dataset.idx2token[task_idx](best_hyps_id[b])
+                hyp = token_merge(dataset.idx2token[task_idx](best_hyps_id[b]))
                 # Write to trn
                 utt_id = str(batch['utt_ids'][b])
                 speaker = str(batch['speakers'][b]).replace('-', '_')

@@ -38,7 +38,14 @@ def mkdir_join(path, *dir_name):
             path = os.path.join(path, dir_name[i])
     return path
 
-
+def token_merge(text_in):
+    text_out=""
+    for char in text_in.split():
+        if '@' in char:
+            text_out += str(char).replace('@@', '')
+        else:
+            text_out += str(char) + ' '
+    return text_out
 
 def host_ip():
     try:
