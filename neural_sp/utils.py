@@ -41,8 +41,8 @@ def mkdir_join(path, *dir_name):
 def token_merge(text_in):
     text_out=""
     for char in text_in.split():
-        if '@' in char:
-            text_out += str(char).replace('@@', '')
+        if '<unk>' in char:
+            text_out += str(char).replace('<unk><unk>', '')
         else:
             text_out += str(char) + ' '
     return text_out
