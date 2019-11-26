@@ -80,11 +80,12 @@ class SeqDataloader(DataLoader):
                                            num_workers=num_workers,
                                            collate_fn=self.collate_fn)
         else:
-            sampler = DistributedSampler(dataset, num_replicas=hvd.size(), rank=hvd.rank(), shuffle=shuffle)
+            sampler = DistributedSampler(dataset, num_replicas=hvd.size(), rank=hvd.rank())
             super(SeqDataloader, self).__init__(dataset,
                                            batch_size=batch_size, 
                                            sampler=sampler, 
                                            num_workers=num_workers, 
+                                           shuffle=shuffle,
                                            collate_fn=self.collate_fn,
                                            pin_memory=self.pin_memory,
                                            drop_last=False,
