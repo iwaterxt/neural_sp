@@ -61,7 +61,7 @@ class ChunkDataloader(DataLoader):
       
 class SeqDataloader(DataLoader):
     
-    def __init__(self, dataset, batch_size, num_workers=0, distributed=False, 
+    def __init__(self, dataset, batch_size, num_workers=0, distributed=False, shuffle=False,
                  num_stacks=1, num_splices=1, num_skips=1, pin_memory=False, test_only=False, timeout=1000):
         
         self.test_only = test_only
@@ -80,7 +80,7 @@ class SeqDataloader(DataLoader):
                                            num_workers=num_workers,
                                            collate_fn=self.collate_fn)
         else:
-            sampler = DistributedSampler(dataset, num_replicas=hvd.size(), rank=hvd.rank())
+            sampler = DistributedSampler(dataset, num_replicas=hvd.size(), rank=hvd.rank(), shuffle=shuffle)
             super(SeqDataloader, self).__init__(dataset,
                                            batch_size=batch_size, 
                                            sampler=sampler, 
